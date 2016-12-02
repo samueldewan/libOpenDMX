@@ -6,8 +6,15 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BC49561B1DF0823200E94C70 /* libOpenDMX.c in Sources */ = {isa = PBXBuildFile; fileRef = BC4956191DF0823200E94C70 /* libOpenDMX.c */; };
+		BC49561C1DF0823200E94C70 /* libOpenDMX.h in Headers */ = {isa = PBXBuildFile; fileRef = BC49561A1DF0823200E94C70 /* libOpenDMX.h */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		BC4956121DF07E0F00E94C70 /* liblibOpenDMX.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = liblibOpenDMX.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC4956191DF0823200E94C70 /* libOpenDMX.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = libOpenDMX.c; sourceTree = "<group>"; };
+		BC49561A1DF0823200E94C70 /* libOpenDMX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = libOpenDMX.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -24,6 +31,8 @@
 		BC4956091DF07E0F00E94C70 = {
 			isa = PBXGroup;
 			children = (
+				BC49561A1DF0823200E94C70 /* libOpenDMX.h */,
+				BC4956191DF0823200E94C70 /* libOpenDMX.c */,
 				BC4956131DF07E0F00E94C70 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +52,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC49561C1DF0823200E94C70 /* libOpenDMX.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -77,6 +87,7 @@
 				TargetAttributes = {
 					BC4956111DF07E0F00E94C70 = {
 						CreatedOnToolsVersion = 8.2;
+						DevelopmentTeam = 9A8JKZZ857;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -103,6 +114,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC49561B1DF0823200E94C70 /* libOpenDMX.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -199,9 +211,12 @@
 		BC4956171DF07E0F00E94C70 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				DEVELOPMENT_TEAM = 9A8JKZZ857;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -209,9 +224,12 @@
 		BC4956181DF07E0F00E94C70 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				DEVELOPMENT_TEAM = 9A8JKZZ857;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -235,6 +253,7 @@
 				BC4956181DF07E0F00E94C70 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
