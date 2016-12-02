@@ -27,9 +27,11 @@
 #endif
 
 #define OPENDMX_UNIVERSE_LENGTH     512
-#define OPENDMX_PERIOD_HIGH         25000000        // 25000000 nanoseconds per packet = 40pps
-#define OPENDMX_PERIOD_MID          33333333        // 33333333 nanoseconds per packet = 30pps
-#define OPENDMX_PERIOD_LOW          50000000        // 50000000 nanoseconds per packet = 20pps
+// Packet length = 104µs (break) + 26µs (MAB) + 40µs (start) + 20480µs (slots) = 20650000 nanoseconds
+// Interpacket times:
+#define OPENDMX_PERIOD_HIGH         4350000         // 4350000 + 20650000 = 25000000 nanoseconds per packet = 40pps
+#define OPENDMX_PERIOD_MID          12683333        // 12683333 + 20650000 = 33333333 nanoseconds per packet = 30pps
+#define OPENDMX_PERIOD_LOW          29350000        // 29350000 + 20650000 = 50000000 nanoseconds per packet = 20pps
 
 struct opendmx_handle {
     int             device_desc;
@@ -43,9 +45,9 @@ struct opendmx_handle {
 extern uint8_t opendmx_start_byte;
 
 /**
- *  The period of time for a packet (in nanoseconds)
+ *  The time between packets in nanoseconds
  */
-extern long opendmx_packet_period;
+extern long opendmx_interpacket_time;
 
 /**
  *  Opens an openDMX device for dmx_output.

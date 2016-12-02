@@ -9,7 +9,7 @@
 #include "libOpenDMX.h"
 
 uint8_t opendmx_start_byte;
-long opendmx_packet_period = OPENDMX_PERIOD_MID;
+long opendmx_interpacket_time = OPENDMX_PERIOD_MID;
 
 struct opendmx_handle* opendmx_open_device (const char *port_name) {
     struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
@@ -96,7 +96,7 @@ int opendmx_start (struct opendmx_handle *device) {
         if (errors >= 8) {return -1;}
         struct timespec tim;
         tim.tv_sec = 0;
-        tim.tv_nsec = opendmx_packet_period;
+        tim.tv_nsec = opendmx_interpacket_time;
         nanosleep(&tim, NULL);
     }
     return 0;
