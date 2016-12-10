@@ -29,7 +29,7 @@ struct list_node {
  *  @param index The index of the item to get.
  *  @returns The item at the specified index.
  */
-extern char *list_get (const struct list list, const int index);
+extern char *list_get (const struct list *list, const int index);
 
 /**
  *  Append and item to a list
@@ -37,7 +37,7 @@ extern char *list_get (const struct list list, const int index);
  *  @param length The length of the cahr array to be appended to the list.
  *  @returns The char array which has been appended to the list.
  */
-extern char *list_append (struct list list, int length);
+extern char *list_append (struct list *list, int length);
 
 /**
  *  Pop an item from a list.
@@ -46,14 +46,14 @@ extern char *list_append (struct list list, int length);
  *  @param index The index which should be poped from the list.
  *  @returns The value which was poped from the list
  */
-extern char *list_pop (struct list list, const int index);
+extern char *list_pop (struct list *list, const int index);
 
 /**
  *  Remove an item from a list (and free it).
  *  @param list The list from which the item should be removed.
  *  @param index The index which should be removed from the list.
  */
-extern void list_remove (struct list list, const int index);
+extern void list_remove (struct list *list, const int index);
 
 /**
  *  Generate an array with the contents of a list.
@@ -61,14 +61,14 @@ extern void list_remove (struct list list, const int index);
  *  @param buffer The array which should contain the items in the list.
  *  @param size The maximum number of items to add to the buffer.
  */
-extern void list_array (const struct list list, char **buffer, int size);
+extern void list_array (const struct list *list, char **buffer, int size);
 
 /**
  *  Frees all nodes of a list
  *  @param list The list for which all nodes should be freed
  *  @returns 0 if the list was freed sucesfully.
  */
-extern int list_free (struct list list);
+extern int list_free (struct list *list);
 
 /**
  *  Generate an array with the contents of a list and free the original list. Pops items from list as they are added to the array.
@@ -76,7 +76,7 @@ extern int list_free (struct list list);
  *  @param buffer The array which should contain the items in the list.
  *  @param size The maximum number of items to add to the buffer.
  */
-extern void list_array_freeing (const struct list list, char **buffer, int size);
+extern void list_array_freeing (struct list *list, char **buffer, int size);
 
 
 #endif /* linkedList_h */
