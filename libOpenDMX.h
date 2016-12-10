@@ -18,9 +18,13 @@
 #include <sys/time.h>
 #include <inttypes.h>
 
+#include "linkedList.h"
+
 #ifdef __APPLE__
 // macOS
 #include <IOKit/serial/ioss.h>
+#include <IOKit/serial/IOSerialKeys.h>
+#include <IOKit/IOBSD.h>
 #elif __linux__
 // linux
 #else
@@ -33,6 +37,8 @@
 #define OPENDMX_PERIOD_HIGH         4350000         // 4350000 + 20650000 = 25000000 nanoseconds per packet = 40pps
 #define OPENDMX_PERIOD_MID          12683333        // 12683333 + 20650000 = 33333333 nanoseconds per packet = 30pps
 #define OPENDMX_PERIOD_LOW          29350000        // 29350000 + 20650000 = 50000000 nanoseconds per packet = 20pps
+
+#define OPENDMX_MAX_DEV_NAME_LENGTH 64
 
 struct opendmx_handle {
     int             device_desc;

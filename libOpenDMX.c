@@ -15,7 +15,7 @@ struct opendmx_handle* opendmx_open_device (const char *port_name) {
     struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
     
     // Get device file
-    device->device_desc = open(port_name, O_RDWR | O_NOCTTY | O_ASYNC);
+    device->device_desc = open(port_name, O_RDWR | O_NOCTTY | O_NDELAY | O_ASYNC);
     if (device->device_desc == -1) {
         goto error;     // failed to open device
     }
@@ -128,3 +128,51 @@ int opendmx_set_slot (struct opendmx_handle *device, int slot, uint8_t value) {
     return 0;
 }
 
+char** open_dmx_get_devices () {
+#ifdef __APPLE__
+    // macOS - use IOBSD
+    kern_return_t kern_result;
+    CFMutableDictionaryRef classes;
+    io_iterator_t *matching_services;
+    
+    classes = IOServiceMatching(kIOSerialBSDServiceValue);
+    if (classes == NULL) {
+        // IOServiceMatching returned a NULL dictionary
+        return NULL;
+    }
+    // Look for devices that claim to be serial modems.
+    CFDictionarySetValue(classes, CFSTR(kIOSerialBSDTypeKey), CFSTR(kIOSerialBSDAllTypes));
+    kern_result = IOServiceGetMatchingServices(kIOMasterPortDefault, classes, matching_services);
+    if (KERN_SUCCESS  != kern_result) {
+        return NULL;
+    }
+    
+    struct list devices = {.first = NULL, .length = 0};
+    
+    io_object_t modem_service;
+    Boolean modem_found = false;
+    while ((modem_service = IOIteratorNext(*matching_services)) && !modem_found) {
+        CFTypeRef bsd_path_cf_string;
+        bsd_path_cf_string = IORegistryEntryCreateCFProperty(modem_service, CFSTR(kIODialinDeviceKey), kCFAllocatorDefault, 0);
+        if (bsd_path_cf_string) {
+            char *path = list_append(devices, 64);
+            Boolean result = CFStringGetCString(bsd_path_cf_string, path, 64, kCFStringEncodingUTF8);
+            CFRelease(bsd_path_cf_string);
+            
+            if (!result) {
+                list_remove(devices, devices.length - 1);
+            }
+        }
+        (void) IOObjectRelease(modem_service);
+    }
+    
+    char** devices_array = (char**)malloc(devices.length * sizeof(char**));
+    list_array_freeing(devices, devices_array, (sizeof(devices_array) / sizeof(devices_array[0])));
+    return devices_array;
+#elif __linux__
+    // linux
+#else
+#   error "Unsupported platform"
+#endif
+    return NULL;
+}
