@@ -6,6 +6,7 @@
 //  Copyright © 2016 Samuel Dewan. All rights reserved.
 //
 
+
 #ifndef OpenDMX_h
 #define OpenDMX_h
 
