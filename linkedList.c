@@ -1,15 +1,15 @@
 //
-//  linkedList.c
-//  libOpenDMX
+//  LinkedList.c
+//  OpenDMX
 //
 //  Created by Samuel Dewan on 2016-12-09.
 //  Copyright © 2016 Samuel Dewan. All rights reserved.
 //
 
-#include "linkedList.h"
+#include "LinkedList.h"
 
 static struct list_node *list_get_node (const struct list *list, const int index) {
-    if (index >= list->length) {
+    if ((list->length == 0) || (index >= list->length)) {
         return NULL;
     }
     
@@ -26,8 +26,15 @@ char *list_get (const struct list *list, const int index) {
 }
 
 char *list_append (struct list *list, int length) {
-    struct list_node *node = (struct list_node*)malloc(sizeof(struct list_node));
-    char *value = (char*)malloc(length * sizeof(char*));
+    char *value;
+    if ((value = (char*)malloc(length * sizeof(char*))) == NULL) {
+        goto error_value_malloc;
+    }
+    struct list_node *node;
+    if ((node = (struct list_node*)malloc(sizeof(struct list_node))) == NULL) {
+        goto error_node_malloc;
+    }
+    
     node->value = value;
     if (list->first == NULL) {
         // The list is empty, all pointers are to this node
@@ -43,6 +50,45 @@ char *list_append (struct list *list, int length) {
     }
     list->length++;
     return value;
+    
+error_node_malloc:
+    free(node);
+error_value_malloc:
+    free(value);
+    return NULL;
+}
+
+char *list_add (struct list *list, int index, int length) {
+    if (index == list->length) {
+        return list_append(list, length); // Trying to add to the end of the list
+    }
+    struct list_node *node_at_index;
+    if ((node_at_index = list_get_node(list, index)) == NULL) {
+        goto error; // Trying to add to an index which is not in the list
+    }
+    char *value;
+    if ((value = (char*)malloc(length * sizeof(char*))) == NULL) {
+        goto error_value_malloc;
+    }
+    struct list_node *node;
+    if ((node = (struct list_node*)malloc(sizeof(struct list_node))) == NULL) {
+        goto error_node_malloc;
+    }
+    
+    node_at_index->prev->next = node;
+    node->prev = node_at_index->prev;
+    node_at_index->prev = node;
+    node->next = node_at_index;
+    
+    list->length++;
+    return value;
+    
+error_node_malloc:
+    free(node);
+error_value_malloc:
+    free(value);
+error:
+    return NULL;
 }
 
 static char *list_unchain_node (struct list_node *node) {
