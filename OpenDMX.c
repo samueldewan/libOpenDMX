@@ -6,12 +6,14 @@
 //  Copyright © 2016 Samuel Dewan. All rights reserved.
 //
 
+# ifndef _WIN32
+
 #include "OpenDMX.h"
 
 uint8_t opendmx_start_byte;
 long opendmx_interpacket_time = OPENDMX_PERIOD_MID;
 
-struct opendmx_handle* opendmx_open_device (const char *port_name) {
+opendmx_device *opendmx_open_device (const char *port_name) {
     struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
     
     // Get device file
@@ -77,7 +79,7 @@ static int set_baud_rate (const int device, const int speed) {
 #endif
 }
 
-static int send_packet (const struct opendmx_handle *device) {
+static int send_packet (const opendmx_device *device) {
     int break_byte = 0;
     int error = set_baud_rate(device->device_desc, 76800);              // Drop to lower baud rate
     error = error || (write(device->device_desc, &break_byte, 1) != 1); // transmit a zero
@@ -88,7 +90,7 @@ static int send_packet (const struct opendmx_handle *device) {
     return error;
 }
 
-int opendmx_start (struct opendmx_handle *device) {
+int opendmx_start (opendmx_device *device) {
     device->running = 1;
     uint8_t errors = 0;
     while (device->running) {
@@ -102,11 +104,11 @@ int opendmx_start (struct opendmx_handle *device) {
     return 0;
 }
 
-void open_dmx_stop (struct opendmx_handle *device) {
+void open_dmx_stop (opendmx_device *device) {
     device->running = 0;
 }
 
-int opendmx_close_device (struct opendmx_handle *device) {
+int opendmx_close_device (opendmx_device *device) {
     open_dmx_stop(device);
     int result = close(device->device_desc);
     if (result != 0) {
@@ -116,11 +118,11 @@ int opendmx_close_device (struct opendmx_handle *device) {
     return 0;
 }
 
-uint8_t opendmx_get_slot (struct opendmx_handle *device, int slot) {
+uint8_t opendmx_get_slot (const opendmx_device *device, int slot) {
     return ((0 <= slot) && (slot < 512)) ? device->slots[slot] : 0;
 }
 
-int opendmx_set_slot (struct opendmx_handle *device, int slot, uint8_t value) {
+int opendmx_set_slot (opendmx_device *device, int slot, uint8_t value) {
     if ((0 > slot) || (slot >= 512)) {
         return -1;
     }
@@ -166,8 +168,8 @@ char** open_dmx_get_devices () {
         (void) IOObjectRelease(modem_service);
     }
     
-    char** devices_array = (char**)malloc(devices.length * sizeof(char**));
-    list_array_freeing(&devices, devices_array, (sizeof(devices_array) / sizeof(devices_array[0])));
+    char** devices_array = (char**)malloc(devices.length * sizeof(char*));
+    list_array_freeing(&devices, devices_array, devices.length);
     return devices_array;
 #elif __linux__
     // linux
@@ -176,3 +178,5 @@ char** open_dmx_get_devices () {
 #endif
     return NULL;
 }
+
+#endif // _WIN32

@@ -27,7 +27,7 @@ char *list_get (const struct list *list, const int index) {
 
 char *list_append (struct list *list, int length) {
     char *value;
-    if ((value = (char*)malloc(length * sizeof(char*))) == NULL) {
+    if ((value = (char*)malloc(length * sizeof(char))) == NULL) {
         goto error_value_malloc;
     }
     struct list_node *node;
@@ -67,7 +67,7 @@ char *list_add (struct list *list, int index, int length) {
         goto error; // Trying to add to an index which is not in the list
     }
     char *value;
-    if ((value = (char*)malloc(length * sizeof(char*))) == NULL) {
+    if ((value = (char*)malloc(length * sizeof(char))) == NULL) {
         goto error_value_malloc;
     }
     struct list_node *node;
@@ -75,10 +75,16 @@ char *list_add (struct list *list, int index, int length) {
         goto error_node_malloc;
     }
     
+    node->value = value;
+    
     node_at_index->prev->next = node;
     node->prev = node_at_index->prev;
     node_at_index->prev = node;
     node->next = node_at_index;
+    
+    if (index == 0) {
+        list->first = node;
+    }
     
     list->length++;
     return value;
@@ -131,11 +137,33 @@ int list_free (struct list *list) {
     return 0;
 }
 
-void list_array_freeing (struct list *list, char **buffer, int size) {
+int list_array_freeing (struct list *list, char **buffer, int size) {
     int length = list->length;
-    if (length == 0) { return; }
+    if (length == 0) { return 0; }
     
-    for (int i = 0; (i < size) && (list->length > 0); i++) {
+    int i = 0;
+    for (; (i < size) && (list->length > 0); i++) {
         buffer[i] = list_pop(list, 0);
     }
+    return i;
+}
+
+
+// MARK: Iterator
+struct list_iterator *list_iterator (const struct list *list) {
+    struct list_iterator *itt = (struct list_iterator *)malloc(sizeof(struct list_iterator));
+    itt->next = list->first;
+    itt->first = list->first;
+    return itt;
+}
+
+char *list_iterator_next (struct list_iterator *iter) {
+    if (iter->next == NULL) return NULL;
+    char *value = iter->next->value;
+    iter->next = (iter->next->next != iter->first) ? iter->next->next : NULL;
+    return value;
+}
+
+int list_iterator_has_next (const struct list_iterator *iter) {
+    return iter->next != NULL;
 }

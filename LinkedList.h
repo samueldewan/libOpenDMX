@@ -23,6 +23,11 @@ struct list_node {
     struct list_node    *next;
 };
 
+struct list_iterator {
+    struct list_node    *next;
+    struct list_node    *first;
+};
+
 /**
  *  Gets an item from a list.
  *  @param list The list from witch to get the item.
@@ -38,6 +43,15 @@ extern char *list_get (const struct list *list, const int index);
  *  @returns The char array which has been appended to the list.
  */
 extern char *list_append (struct list *list, int length);
+
+/**
+ *  Add an item to a list at a specified index
+ *  @param list The list to which the item should be added.
+ *  @param index The index at which the item should be added.
+ *  @param length The length of the cahr array to be added to the list.
+ *  @returns The char array which has been added to the list.
+ */
+extern char *list_add (struct list *list, int index, int length);
 
 /**
  *  Pop an item from a list.
@@ -75,8 +89,29 @@ extern int list_free (struct list *list);
  *  @param list The list from which the array should be created.
  *  @param buffer The array which should contain the items in the list.
  *  @param size The maximum number of items to add to the buffer.
+ *  @return The number of items which where added to the list.
  */
-extern void list_array_freeing (struct list *list, char **buffer, int size);
+extern int list_array_freeing (struct list *list, char **buffer, int size);
 
+/**
+ *  Get an iterator for a list.
+ *  @param list The list for which to get an iterator.
+ *  @return An iterator for the list.
+ */
+extern struct list_iterator *list_iterator (const struct list *list);
+
+/**
+ *  Get the next item from a list iterator.
+ *  @param iter The iterator from which to get an item.
+ *  @return The item, NULL if there are no more items.
+ */
+extern char *list_iterator_next (struct list_iterator *iter);
+
+/**
+ *  Whether or a list iterator has further items.
+ *  @param iter The iterator to check for more items in.
+ *  @return 0 if there are no more items, 1 if there are.
+ */
+extern int list_iterator_has_next (const struct list_iterator *iter);
 
 #endif /* LinkedList_h */

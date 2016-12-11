@@ -7,21 +7,65 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BC31D6611DFDEA860075ED34 /* OpenDMXD2XX.c in Sources */ = {isa = PBXBuildFile; fileRef = BC31D65F1DFDEA860075ED34 /* OpenDMXD2XX.c */; };
+		BC31D66A1DFDEB1C0075ED34 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = BC31D6691DFDEB1C0075ED34 /* main.c */; };
+		BC31D66E1DFDF2610075ED34 /* OpenDMX.h in Sources */ = {isa = PBXBuildFile; fileRef = BC49561A1DF0823200E94C70 /* OpenDMX.h */; };
+		BC31D6701DFDF2650075ED34 /* LinkedList.h in Sources */ = {isa = PBXBuildFile; fileRef = BC4D59601DFB0E9A00C16732 /* LinkedList.h */; };
+		BC31D6721DFDF2710075ED34 /* libOpenDMX.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BC4956121DF07E0F00E94C70 /* libOpenDMX.dylib */; };
+		BC31D6741DFDF28B0075ED34 /* LinkedList.c in Sources */ = {isa = PBXBuildFile; fileRef = BC4D595F1DFB0E9A00C16732 /* LinkedList.c */; };
 		BC49561B1DF0823200E94C70 /* OpenDMX.c in Sources */ = {isa = PBXBuildFile; fileRef = BC4956191DF0823200E94C70 /* OpenDMX.c */; };
 		BC49561C1DF0823200E94C70 /* OpenDMX.h in Headers */ = {isa = PBXBuildFile; fileRef = BC49561A1DF0823200E94C70 /* OpenDMX.h */; };
 		BC4D59611DFB0E9A00C16732 /* LinkedList.c in Sources */ = {isa = PBXBuildFile; fileRef = BC4D595F1DFB0E9A00C16732 /* LinkedList.c */; };
 		BC4D59621DFB0E9A00C16732 /* LinkedList.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4D59601DFB0E9A00C16732 /* LinkedList.h */; };
+		BCF81E921DFDC774006928F8 /* OpenDMXTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BCF81E911DFDC774006928F8 /* OpenDMXTests.m */; };
+		BCF81E941DFDC774006928F8 /* libOpenDMX.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BC4956121DF07E0F00E94C70 /* libOpenDMX.dylib */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		BCF81E951DFDC774006928F8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BC49560A1DF07E0F00E94C70 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BC4956111DF07E0F00E94C70;
+			remoteInfo = OpenDMX;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BC31D6651DFDEB1C0075ED34 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		BC31D65F1DFDEA860075ED34 /* OpenDMXD2XX.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OpenDMXD2XX.c; sourceTree = "<group>"; };
+		BC31D6671DFDEB1C0075ED34 /* Tests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Tests; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC31D6691DFDEB1C0075ED34 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		BC4956121DF07E0F00E94C70 /* libOpenDMX.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libOpenDMX.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		BC4956191DF0823200E94C70 /* OpenDMX.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OpenDMX.c; sourceTree = "<group>"; };
 		BC49561A1DF0823200E94C70 /* OpenDMX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenDMX.h; sourceTree = "<group>"; };
 		BC4D595F1DFB0E9A00C16732 /* LinkedList.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LinkedList.c; sourceTree = "<group>"; };
 		BC4D59601DFB0E9A00C16732 /* LinkedList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinkedList.h; sourceTree = "<group>"; };
+		BCF81E8F1DFDC774006928F8 /* OpenDMXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenDMXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BCF81E911DFDC774006928F8 /* OpenDMXTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OpenDMXTests.m; sourceTree = "<group>"; };
+		BCF81E931DFDC774006928F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		BC31D6641DFDEB1C0075ED34 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BC31D6721DFDF2710075ED34 /* libOpenDMX.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BC49560F1DF07E0F00E94C70 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -29,16 +73,35 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BCF81E8C1DFDC774006928F8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BCF81E941DFDC774006928F8 /* libOpenDMX.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BC31D6681DFDEB1C0075ED34 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				BC31D6691DFDEB1C0075ED34 /* main.c */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
 		BC4956091DF07E0F00E94C70 = {
 			isa = PBXGroup;
 			children = (
 				BC49561A1DF0823200E94C70 /* OpenDMX.h */,
 				BC4956191DF0823200E94C70 /* OpenDMX.c */,
+				BC31D65F1DFDEA860075ED34 /* OpenDMXD2XX.c */,
 				BC4D59601DFB0E9A00C16732 /* LinkedList.h */,
 				BC4D595F1DFB0E9A00C16732 /* LinkedList.c */,
+				BCF81E901DFDC774006928F8 /* OpenDMXTests */,
+				BC31D6681DFDEB1C0075ED34 /* Tests */,
 				BC4956131DF07E0F00E94C70 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -47,8 +110,19 @@
 			isa = PBXGroup;
 			children = (
 				BC4956121DF07E0F00E94C70 /* libOpenDMX.dylib */,
+				BCF81E8F1DFDC774006928F8 /* OpenDMXTests.xctest */,
+				BC31D6671DFDEB1C0075ED34 /* Tests */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		BCF81E901DFDC774006928F8 /* OpenDMXTests */ = {
+			isa = PBXGroup;
+			children = (
+				BCF81E911DFDC774006928F8 /* OpenDMXTests.m */,
+				BCF81E931DFDC774006928F8 /* Info.plist */,
+			);
+			path = OpenDMXTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -66,6 +140,23 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		BC31D6661DFDEB1C0075ED34 /* Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BC31D66B1DFDEB1C0075ED34 /* Build configuration list for PBXNativeTarget "Tests" */;
+			buildPhases = (
+				BC31D6631DFDEB1C0075ED34 /* Sources */,
+				BC31D6641DFDEB1C0075ED34 /* Frameworks */,
+				BC31D6651DFDEB1C0075ED34 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Tests;
+			productName = Tests;
+			productReference = BC31D6671DFDEB1C0075ED34 /* Tests */;
+			productType = "com.apple.product-type.tool";
+		};
 		BC4956111DF07E0F00E94C70 /* OpenDMX */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = BC4956161DF07E0F00E94C70 /* Build configuration list for PBXNativeTarget "OpenDMX" */;
@@ -83,16 +174,45 @@
 			productReference = BC4956121DF07E0F00E94C70 /* libOpenDMX.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
+		BCF81E8E1DFDC774006928F8 /* OpenDMXTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BCF81E971DFDC774006928F8 /* Build configuration list for PBXNativeTarget "OpenDMXTests" */;
+			buildPhases = (
+				BCF81E8B1DFDC774006928F8 /* Sources */,
+				BCF81E8C1DFDC774006928F8 /* Frameworks */,
+				BCF81E8D1DFDC774006928F8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BCF81E961DFDC774006928F8 /* PBXTargetDependency */,
+			);
+			name = OpenDMXTests;
+			productName = OpenDMXTests;
+			productReference = BCF81E8F1DFDC774006928F8 /* OpenDMXTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		BC49560A1DF07E0F00E94C70 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0820;
 				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = "Samuel Dewan";
 				TargetAttributes = {
+					BC31D6661DFDEB1C0075ED34 = {
+						CreatedOnToolsVersion = 8.2;
+						DevelopmentTeam = 9A8JKZZ857;
+						ProvisioningStyle = Automatic;
+					};
 					BC4956111DF07E0F00E94C70 = {
+						CreatedOnToolsVersion = 8.2;
+						DevelopmentTeam = 9A8JKZZ857;
+						ProvisioningStyle = Automatic;
+					};
+					BCF81E8E1DFDC774006928F8 = {
 						CreatedOnToolsVersion = 8.2;
 						DevelopmentTeam = 9A8JKZZ857;
 						ProvisioningStyle = Automatic;
@@ -112,23 +232,79 @@
 			projectRoot = "";
 			targets = (
 				BC4956111DF07E0F00E94C70 /* OpenDMX */,
+				BCF81E8E1DFDC774006928F8 /* OpenDMXTests */,
+				BC31D6661DFDEB1C0075ED34 /* Tests */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		BCF81E8D1DFDC774006928F8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		BC31D6631DFDEB1C0075ED34 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BC31D6741DFDF28B0075ED34 /* LinkedList.c in Sources */,
+				BC31D6701DFDF2650075ED34 /* LinkedList.h in Sources */,
+				BC31D66E1DFDF2610075ED34 /* OpenDMX.h in Sources */,
+				BC31D66A1DFDEB1C0075ED34 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BC49560E1DF07E0F00E94C70 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				BC4D59611DFB0E9A00C16732 /* LinkedList.c in Sources */,
 				BC49561B1DF0823200E94C70 /* OpenDMX.c in Sources */,
+				BC31D6611DFDEA860075ED34 /* OpenDMXD2XX.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BCF81E8B1DFDC774006928F8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BCF81E921DFDC774006928F8 /* OpenDMXTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		BCF81E961DFDC774006928F8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BC4956111DF07E0F00E94C70 /* OpenDMX */;
+			targetProxy = BCF81E951DFDC774006928F8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		BC31D66C1DFDEB1C0075ED34 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEVELOPMENT_TEAM = 9A8JKZZ857;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		BC31D66D1DFDEB1C0075ED34 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEVELOPMENT_TEAM = 9A8JKZZ857;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		BC4956141DF07E0F00E94C70 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -242,9 +418,41 @@
 			};
 			name = Release;
 		};
+		BCF81E981DFDC774006928F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 9A8JKZZ857;
+				INFOPLIST_FILE = OpenDMXTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = samueldewan.OpenDMXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		BCF81E991DFDC774006928F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 9A8JKZZ857;
+				INFOPLIST_FILE = OpenDMXTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = samueldewan.OpenDMXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		BC31D66B1DFDEB1C0075ED34 /* Build configuration list for PBXNativeTarget "Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC31D66C1DFDEB1C0075ED34 /* Debug */,
+				BC31D66D1DFDEB1C0075ED34 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		BC49560D1DF07E0F00E94C70 /* Build configuration list for PBXProject "OpenDMX" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -259,6 +467,15 @@
 			buildConfigurations = (
 				BC4956171DF07E0F00E94C70 /* Debug */,
 				BC4956181DF07E0F00E94C70 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BCF81E971DFDC774006928F8 /* Build configuration list for PBXNativeTarget "OpenDMXTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BCF81E981DFDC774006928F8 /* Debug */,
+				BCF81E991DFDC774006928F8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

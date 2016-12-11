@@ -4,6 +4,21 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>ListTests.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>OpenDMXTests.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>Tests.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
 		<key>libOpenDMX.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -12,7 +27,27 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>BC31D6661DFDEB1C0075ED34</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>BC4956111DF07E0F00E94C70</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>BCF81E7F1DFDC752006928F8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>BCF81E8E1DFDC774006928F8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>BCF81EA01DFDCBCF006928F8</key>
 		<dict>
 			<key>primary</key>
 			<true/>
