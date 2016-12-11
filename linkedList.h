@@ -1,13 +1,13 @@
 //
-//  linkedList.h
-//  libOpenDMX
+//  LinkedList.h
+//  OpenDMX
 //
 //  Created by Samuel Dewan on 2016-12-09.
 //  Copyright © 2016 Samuel Dewan. All rights reserved.
 //
 
-#ifndef linkedList_h
-#define linkedList_h
+#ifndef LinkedList_h
+#define LinkedList_h
 
 #include <stdlib.h>
 
@@ -79,4 +79,4 @@ extern int list_free (struct list *list);
 extern void list_array_freeing (struct list *list, char **buffer, int size);
 
 
-#endif /* linkedList_h */
+#endif /* LinkedList_h */

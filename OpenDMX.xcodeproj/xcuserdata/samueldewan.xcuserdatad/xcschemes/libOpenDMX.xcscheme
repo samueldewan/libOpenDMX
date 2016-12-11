@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BC4956111DF07E0F00E94C70"
-               BuildableName = "liblibOpenDMX.dylib"
-               BlueprintName = "libOpenDMX"
-               ReferencedContainer = "container:libOpenDMX.xcodeproj">
+               BuildableName = "libOpenDMX.dylib"
+               BlueprintName = "OpenDMX"
+               ReferencedContainer = "container:OpenDMX.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,9 +46,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BC4956111DF07E0F00E94C70"
-            BuildableName = "liblibOpenDMX.dylib"
-            BlueprintName = "libOpenDMX"
-            ReferencedContainer = "container:libOpenDMX.xcodeproj">
+            BuildableName = "libOpenDMX.dylib"
+            BlueprintName = "OpenDMX"
+            ReferencedContainer = "container:OpenDMX.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -64,9 +64,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BC4956111DF07E0F00E94C70"
-            BuildableName = "liblibOpenDMX.dylib"
-            BlueprintName = "libOpenDMX"
-            ReferencedContainer = "container:libOpenDMX.xcodeproj">
+            BuildableName = "libOpenDMX.dylib"
+            BlueprintName = "OpenDMX"
+            ReferencedContainer = "container:OpenDMX.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

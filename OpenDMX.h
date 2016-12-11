@@ -1,14 +1,14 @@
 //
-//  libOpenDMX.h
-//  libOpenDMX
+//  OpenDMX.h
+//  OpenDMX
 //
 //  Created by Samuel Dewan on 2016-12-01.
 //  Copyright © 2016 Samuel Dewan. All rights reserved.
 //
 
 
-#ifndef libOpenDMX_h
-#define libOpenDMX_h
+#ifndef OpenDMX_h
+#define OpenDMX_h
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -101,4 +101,4 @@ extern uint8_t opendmx_get_slot (struct opendmx_handle *device, int slot);
  */
 extern int opendmx_set_slot (struct opendmx_handle *device, int slot, uint8_t value);
 
-#endif /* libOpenDMX_h */
+#endif /* OpenDMX_h */

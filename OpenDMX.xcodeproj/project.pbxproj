@@ -7,16 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BC49561B1DF0823200E94C70 /* libOpenDMX.c in Sources */ = {isa = PBXBuildFile; fileRef = BC4956191DF0823200E94C70 /* libOpenDMX.c */; };
-		BC49561C1DF0823200E94C70 /* libOpenDMX.h in Headers */ = {isa = PBXBuildFile; fileRef = BC49561A1DF0823200E94C70 /* libOpenDMX.h */; };
+		BC49561B1DF0823200E94C70 /* OpenDMX.c in Sources */ = {isa = PBXBuildFile; fileRef = BC4956191DF0823200E94C70 /* OpenDMX.c */; };
+		BC49561C1DF0823200E94C70 /* OpenDMX.h in Headers */ = {isa = PBXBuildFile; fileRef = BC49561A1DF0823200E94C70 /* OpenDMX.h */; };
 		BC4D59611DFB0E9A00C16732 /* linkedList.c in Sources */ = {isa = PBXBuildFile; fileRef = BC4D595F1DFB0E9A00C16732 /* linkedList.c */; };
 		BC4D59621DFB0E9A00C16732 /* linkedList.h in Headers */ = {isa = PBXBuildFile; fileRef = BC4D59601DFB0E9A00C16732 /* linkedList.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		BC4956121DF07E0F00E94C70 /* liblibOpenDMX.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = liblibOpenDMX.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		BC4956191DF0823200E94C70 /* libOpenDMX.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = libOpenDMX.c; sourceTree = "<group>"; };
-		BC49561A1DF0823200E94C70 /* libOpenDMX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = libOpenDMX.h; sourceTree = "<group>"; };
+		BC4956121DF07E0F00E94C70 /* libOpenDMX.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libOpenDMX.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC4956191DF0823200E94C70 /* OpenDMX.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OpenDMX.c; sourceTree = "<group>"; };
+		BC49561A1DF0823200E94C70 /* OpenDMX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenDMX.h; sourceTree = "<group>"; };
 		BC4D595F1DFB0E9A00C16732 /* linkedList.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linkedList.c; sourceTree = "<group>"; };
 		BC4D59601DFB0E9A00C16732 /* linkedList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linkedList.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -35,8 +35,8 @@
 		BC4956091DF07E0F00E94C70 = {
 			isa = PBXGroup;
 			children = (
-				BC49561A1DF0823200E94C70 /* libOpenDMX.h */,
-				BC4956191DF0823200E94C70 /* libOpenDMX.c */,
+				BC49561A1DF0823200E94C70 /* OpenDMX.h */,
+				BC4956191DF0823200E94C70 /* OpenDMX.c */,
 				BC4D59601DFB0E9A00C16732 /* linkedList.h */,
 				BC4D595F1DFB0E9A00C16732 /* linkedList.c */,
 				BC4956131DF07E0F00E94C70 /* Products */,
@@ -46,7 +46,7 @@
 		BC4956131DF07E0F00E94C70 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BC4956121DF07E0F00E94C70 /* liblibOpenDMX.dylib */,
+				BC4956121DF07E0F00E94C70 /* libOpenDMX.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -58,7 +58,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BC49561C1DF0823200E94C70 /* libOpenDMX.h in Headers */,
+				BC49561C1DF0823200E94C70 /* OpenDMX.h in Headers */,
 				BC4D59621DFB0E9A00C16732 /* linkedList.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -66,9 +66,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		BC4956111DF07E0F00E94C70 /* libOpenDMX */ = {
+		BC4956111DF07E0F00E94C70 /* OpenDMX */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BC4956161DF07E0F00E94C70 /* Build configuration list for PBXNativeTarget "libOpenDMX" */;
+			buildConfigurationList = BC4956161DF07E0F00E94C70 /* Build configuration list for PBXNativeTarget "OpenDMX" */;
 			buildPhases = (
 				BC49560E1DF07E0F00E94C70 /* Sources */,
 				BC49560F1DF07E0F00E94C70 /* Frameworks */,
@@ -78,9 +78,9 @@
 			);
 			dependencies = (
 			);
-			name = libOpenDMX;
+			name = OpenDMX;
 			productName = libOpenDMX;
-			productReference = BC4956121DF07E0F00E94C70 /* liblibOpenDMX.dylib */;
+			productReference = BC4956121DF07E0F00E94C70 /* libOpenDMX.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
@@ -99,7 +99,7 @@
 					};
 				};
 			};
-			buildConfigurationList = BC49560D1DF07E0F00E94C70 /* Build configuration list for PBXProject "libOpenDMX" */;
+			buildConfigurationList = BC49560D1DF07E0F00E94C70 /* Build configuration list for PBXProject "OpenDMX" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -111,7 +111,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				BC4956111DF07E0F00E94C70 /* libOpenDMX */,
+				BC4956111DF07E0F00E94C70 /* OpenDMX */,
 			);
 		};
 /* End PBXProject section */
@@ -122,7 +122,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BC4D59611DFB0E9A00C16732 /* linkedList.c in Sources */,
-				BC49561B1DF0823200E94C70 /* libOpenDMX.c in Sources */,
+				BC49561B1DF0823200E94C70 /* OpenDMX.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,7 +245,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		BC49560D1DF07E0F00E94C70 /* Build configuration list for PBXProject "libOpenDMX" */ = {
+		BC49560D1DF07E0F00E94C70 /* Build configuration list for PBXProject "OpenDMX" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BC4956141DF07E0F00E94C70 /* Debug */,
@@ -254,7 +254,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BC4956161DF07E0F00E94C70 /* Build configuration list for PBXNativeTarget "libOpenDMX" */ = {
+		BC4956161DF07E0F00E94C70 /* Build configuration list for PBXNativeTarget "OpenDMX" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BC4956171DF07E0F00E94C70 /* Debug */,

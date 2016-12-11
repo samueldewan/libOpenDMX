@@ -1,12 +1,12 @@
 //
-//  libOpenDMX.c
-//  libOpenDMX
+//  OpenDMX.c
+//  OpenDMX
 //
 //  Created by Samuel Dewan on 2016-12-01.
 //  Copyright © 2016 Samuel Dewan. All rights reserved.
 //
 
-#include "libOpenDMX.h"
+#include "OpenDMX.h"
 
 uint8_t opendmx_start_byte;
 long opendmx_interpacket_time = OPENDMX_PERIOD_MID;
@@ -155,19 +155,19 @@ char** open_dmx_get_devices () {
         CFTypeRef bsd_path_cf_string;
         bsd_path_cf_string = IORegistryEntryCreateCFProperty(modem_service, CFSTR(kIODialinDeviceKey), kCFAllocatorDefault, 0);
         if (bsd_path_cf_string) {
-            char *path = list_append(devices, 64);
+            char *path = list_append(&devices, 64);
             Boolean result = CFStringGetCString(bsd_path_cf_string, path, 64, kCFStringEncodingUTF8);
             CFRelease(bsd_path_cf_string);
             
             if (!result) {
-                list_remove(devices, devices.length - 1);
+                list_remove(&devices, devices.length - 1);
             }
         }
         (void) IOObjectRelease(modem_service);
     }
     
     char** devices_array = (char**)malloc(devices.length * sizeof(char**));
-    list_array_freeing(devices, devices_array, (sizeof(devices_array) / sizeof(devices_array[0])));
+    list_array_freeing(&devices, devices_array, (sizeof(devices_array) / sizeof(devices_array[0])));
     return devices_array;
 #elif __linux__
     // linux
