@@ -11,16 +11,24 @@ This library is in the very early stages of development. At this point macOS sup
 ### Example Use:
 
 ```C
-#include "OpenDMX.h"
+#include <pthread.h>
+#include <OpenDMX.h>
 
-char **avaliable_devices = open_dmx_get_devices();
+struct opendmx_iterator *devices = open_dmx_get_devices();
 // Determine if any devices are avaliable, and if they are, which device should be used here
 
-opendmx_device *universe = opendmx_open_device(avaliable_devices[0]); // 0 is a placeholder
+opendmx_device *universe = opendmx_open_device(opendmx_iterator_next(devices)); // Opens the first avaliable serial port, not a good idea for actual use as the first port will rarely actually be a DMX device
 
+opendmx_iterator_free(devices); // Remeber to free the device iterator, and to only free it after opening the device freeing the iterator will free all of it's device strings
+
+pthread_t dmx_thread; // Run DMX output on a separate thread as it will block the thread it is running on
+pthread_create(&dmx_thread, (void *)universe, opendmx_thread,"DMX Output"); // libOpenDMX provides the opendmx_thread fuction for easy integration with 
+
+opendmx_set_slot(universe, 0, 255); // Do DMX stuffs here
+
+opendmx_close(universe);
+opendmx_free(universe);
 ```
-
-
 
 ### Warning:
 

@@ -104,6 +104,19 @@ extern uint8_t opendmx_get_slot (const opendmx_device *device, int slot);
 extern int opendmx_set_slot (opendmx_device *device, int slot, uint8_t value);
 
 /**
+ *  Check if opendmx device is outputing DMX
+ *  @returns 1 if DMX output is active, 0 otherwise.
+ */
+extern int opendmx_is_running (opendmx_device *device);
+
+/**
+ *  Check if opendmx device encountered an error since it was last started.
+ *  @note The opendmx device stops transmitting an registers an error if more than 8 packets in a row fail.
+ *  @returns 1 if an error had occured, 0 otherwise.
+ */
+extern int opendmx_has_error (opendmx_device *device);
+
+/**
  *  Get a list of avaliable serial ports which could be used for DMX output. One macOS and Linux devices are referenced by device file name (ie. /dev/ttyUSB0). On Windows devices are referenced by serial number, and only FTDI serial devices will be listed.
  *  @note Devices listed are not nessasarly openDMX devices, and may not even support DMX output at all (the only real requirment is that the device supports 250kbaud and 72.8k baud)
  *  @returns An iterator for the avaliable serial ports.

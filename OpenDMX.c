@@ -17,6 +17,7 @@ long opendmx_interpacket_time = OPENDMX_PERIOD_MID;
 typedef struct opendmx_handle {
     int             device_desc;
     volatile int    running:1;
+    volatile int    error:1;
     uint8_t         slots[OPENDMX_UNIVERSE_LENGTH];
 } opendmx_device;
 
@@ -109,10 +110,17 @@ void *opendmx_thread (void *device) {
 
 int opendmx_start (opendmx_device *device) {
     device->running = 1;
+    device->error = 0;
     uint8_t errors = 0;
     while (device->running) {
-        if (send_packet(device)) {errors++;}
+        if (send_packet(device)) {
+            errors++;
+        } else {
+            errors = 0;
+        }
         if (errors >= 8) {
+            device->running = 0;
+            device->error = 1;
             return -1;
         }
         struct timespec tim;
@@ -204,6 +212,14 @@ struct opendmx_iterator *open_dmx_get_devices () {
 #   error "Unsupported platform"
 #endif
     return 0;
+}
+
+int opendmx_is_running (opendmx_device *device) {
+    return device->running;
+}
+
+int opendmx_has_error (opendmx_device *device) {
+    return device->error;
 }
 
 // MARK: Iterator
