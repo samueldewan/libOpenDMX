@@ -59,9 +59,16 @@ extern long opendmx_interpacket_time;
 extern opendmx_device *opendmx_open_device(const char* device_file);
 
 /**
+ *  A helper function designed to be used with a pthread. Calls opendmx_start.
+ *  @param device The divice on which to output DMX, must be an opendmx_device
+ *  @returns NULL, will not return until opendmx_stop is called on the associated opendmx_device.
+ */
+extern void *opendmx_thread (void *device);
+
+/**
  *  Starts DMX output.
  *  @note This function blocks the thread it is called on until dmx output for the device is stoped.
- *  @param device The divice for which to output DMX
+ *  @param device The divice on which to output DMX
  *  @return 0 if DMX output is successful, < 0 if
  */
 extern int opendmx_start (opendmx_device *device);

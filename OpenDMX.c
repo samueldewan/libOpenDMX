@@ -102,12 +102,19 @@ static int send_packet (const opendmx_device *device) {
     return error;
 }
 
+void *opendmx_thread (void *device) {
+    opendmx_start((opendmx_device*) device);
+    return NULL;
+}
+
 int opendmx_start (opendmx_device *device) {
     device->running = 1;
     uint8_t errors = 0;
     while (device->running) {
         if (send_packet(device)) {errors++;}
-        if (errors >= 8) {return -1;}
+        if (errors >= 8) {
+            return -1;
+        }
         struct timespec tim;
         tim.tv_sec = 0;
         tim.tv_nsec = opendmx_interpacket_time;
