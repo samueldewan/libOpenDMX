@@ -118,7 +118,7 @@ int opendmx_start (opendmx_device *device) {
         } else {
             errors = 0;
         }
-        if (errors >= 8) {
+        if ((errors & 0b11111111) == 0) {
             device->running = 0;
             device->error = 1;
             return -1;
