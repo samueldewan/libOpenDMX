@@ -74,8 +74,9 @@ extern void list_remove (struct list *list, const int index);
  *  @param list The list from which the array should be created.
  *  @param buffer The array which should contain the items in the list.
  *  @param size The maximum number of items to add to the buffer.
+ *  @returns The number of items which where added to the array,
  */
-extern void list_array (const struct list *list, char **buffer, int size);
+extern int list_array (const struct list *list, char **buffer, int size);
 
 /**
  *  Frees all nodes of a list
@@ -89,7 +90,7 @@ extern int list_free (struct list *list);
  *  @param list The list from which the array should be created.
  *  @param buffer The array which should contain the items in the list.
  *  @param size The maximum number of items to add to the buffer.
- *  @return The number of items which where added to the list.
+ *  @return The number of items which where added to the array.
  */
 extern int list_array_freeing (struct list *list, char **buffer, int size);
 

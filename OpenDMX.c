@@ -14,6 +14,17 @@
 uint8_t opendmx_start_byte;
 long opendmx_interpacket_time = OPENDMX_PERIOD_MID;
 
+typedef struct opendmx_handle {
+    int             device_desc;
+    volatile int    running:1;
+    uint8_t         slots[OPENDMX_UNIVERSE_LENGTH];
+} opendmx_device;
+
+struct opendmx_iterator {
+    struct list             *list;
+    struct list_iterator    *iterator;
+};
+
 opendmx_device *opendmx_open_device (const char *port_name) {
     struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
     
@@ -131,7 +142,7 @@ int opendmx_set_slot (opendmx_device *device, int slot, uint8_t value) {
     return 0;
 }
 
-int open_dmx_get_devices (char **device_list, int length) {
+struct opendmx_iterator *open_dmx_get_devices () {
 #ifdef __APPLE__
     // macOS - use IOBSD
     kern_return_t kern_result;
@@ -157,29 +168,58 @@ int open_dmx_get_devices (char **device_list, int length) {
         return 0;
     }
     
-    struct list devices = {.first = NULL, .length = 0};
+    struct list *devices = (struct list *)malloc(sizeof(struct list));
+    devices->first = NULL;
+    devices->length = 0;
+    
     io_object_t modem_service;
     while ((modem_service = IOIteratorNext(matching_services))) {
         CFTypeRef bsd_path_cf_string;
         bsd_path_cf_string = IORegistryEntryCreateCFProperty(modem_service, CFSTR(kIODialinDeviceKey), kCFAllocatorDefault, 0);
         if (bsd_path_cf_string) {
-            char *path = list_append(&devices, 64);
-            Boolean result = CFStringGetCString(bsd_path_cf_string, path, 64, kCFStringEncodingUTF8);
+            char *path = list_append(devices, OPENDMX_MAX_DEV_NAME_LENGTH);
+            Boolean result = CFStringGetCString(bsd_path_cf_string, path, OPENDMX_MAX_DEV_NAME_LENGTH, kCFStringEncodingUTF8);
             CFRelease(bsd_path_cf_string);
             
             if (!result) {
-                list_remove(&devices, devices.length - 1);
+                list_remove(devices, devices->length - 1);
             }
         }
         (void) IOObjectRelease(modem_service);
     }
-    return list_array_freeing(&devices, device_list, length);
+    struct opendmx_iterator *device_list = (struct opendmx_iterator*)malloc(sizeof(struct opendmx_iterator));
+    device_list->list = devices;
+    device_list->iterator = list_iterator(devices);
+    return device_list;
 #elif __linux__
     // linux
 #else
 #   error "Unsupported platform"
 #endif
     return 0;
+}
+
+// MARK: Iterator
+char *opendmx_iterator_next (struct opendmx_iterator *iter) {
+    return list_iterator_next(iter->iterator);
+}
+
+int opendmx_iterator_has_next (const struct opendmx_iterator *iter) {
+    return iter->iterator->next != NULL;
+}
+
+int opendmx_iterator_length (const struct opendmx_iterator *iter) {
+    return iter->list->length;
+}
+
+void opendmx_iterator_free (const struct opendmx_iterator *iter) {
+    free(iter->iterator);
+    list_free(iter->list);
+    free(iter);
+}
+
+int opendmx_iterator_to_array (const struct opendmx_iterator *iter, char **buffer, int max_entries) {
+    return list_array(iter->list, buffer, max_entries);
 }
 
 #endif // _WIN32

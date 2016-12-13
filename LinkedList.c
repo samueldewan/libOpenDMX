@@ -119,15 +119,17 @@ void list_remove (struct list *list, const int index) {
     free(list_pop(list, index));
 }
 
-void list_array (const struct list *list, char **buffer, int size) {
+int list_array (const struct list *list, char **buffer, int size) {
     struct list_node *node = list->first;
-    if (node == NULL) { return; }
+    if (node == NULL) { return 0; }
     
     buffer[0] = node->value;
     node = node->next;
-    for (int i = 1; (i < size) && (node != list->first); i++, node = node->next) {
+    int i = 1;
+    for (; (i < size) && (node != list->first); i++, node = node->next) {
         buffer[i] = node->value;
     }
+    return i;
 }
 
 int list_free (struct list *list) {
