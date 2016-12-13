@@ -22,12 +22,12 @@ opendmx_device *universe = opendmx_open_device(opendmx_iterator_next(devices)); 
 opendmx_iterator_free(devices); // Remeber to free the device iterator, and to only free it after opening the device freeing the iterator will free all of it's device strings
 
 pthread_t dmx_thread; // Run DMX output on a separate thread as it will block the thread it is running on
-pthread_create(&dmx_thread, (void *)universe, opendmx_thread,"DMX Output"); // libOpenDMX provides the opendmx_thread fuction for easy integration with 
+pthread_create(&dmx_thread, 0, opendmx_thread, dev); // libOpenDMX provides the opendmx_thread fuction for easy integration with pthreads
 
 opendmx_set_slot(universe, 0, 255); // Do DMX stuffs here
 
-opendmx_close(universe);
-opendmx_free(universe);
+opendmx_close(universe); // Stops output on the DMX device, ending the DMX thread
+opendmx_free(universe); // Free the DMX universe and all of it's atributes
 ```
 
 ### Warning:
