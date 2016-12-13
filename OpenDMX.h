@@ -17,17 +17,13 @@
 #include <sys/time.h>
 #include <inttypes.h>
 
-#include "linkedList.h"
-
 #ifdef __APPLE__
 // macOS
-#include <IOKit/serial/ioss.h>
+#include <IOKit/IOKitLib.h>
 #include <IOKit/serial/IOSerialKeys.h>
 #include <IOKit/IOBSD.h>
 #elif __linux__
 // Linux
-#elif _WIN32
-// Windows
 #else
 #   error "Unsupported platform"
 #endif
@@ -105,8 +101,10 @@ extern int opendmx_set_slot (opendmx_device *device, int slot, uint8_t value);
 /**
  *  Get a list of avaliable serial ports which could be used for DMX output. One macOS and Linux devices are referenced by device file name (ie. /dev/ttyUSB0). On Windows devices are referenced by serial number, and only FTDI serial devices will be listed.
  *  @note Devices listed are not nessasarly openDMX devices, and may not even support DMX output at all (the only real requirment is that the device supports 250kbaud and 72.8k baud)
- *  @returns A list of avaliable serial ports.
+ *  @param device_list An array in which to put the device identifiers.
+ *  @param length The maximum number of devices to be listed.
+ *  @returns The number listed serial ports.
  */
-extern char **open_dmx_get_devices ();
+extern int open_dmx_get_devices (char **device_list, int length);
 
 #endif /* OpenDMX_h */

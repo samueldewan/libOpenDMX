@@ -9,6 +9,7 @@
 # ifndef _WIN32
 
 #include "OpenDMX.h"
+#include "LinkedList.h"
 
 uint8_t opendmx_start_byte;
 long opendmx_interpacket_time = OPENDMX_PERIOD_MID;
@@ -130,30 +131,35 @@ int opendmx_set_slot (opendmx_device *device, int slot, uint8_t value) {
     return 0;
 }
 
-char** open_dmx_get_devices () {
+int open_dmx_get_devices (char **device_list, int length) {
 #ifdef __APPLE__
     // macOS - use IOBSD
     kern_return_t kern_result;
     CFMutableDictionaryRef classes;
-    io_iterator_t *matching_services;
+    io_iterator_t matching_services;
+    mach_port_t master_port;
+    
+    kern_result = IOMasterPort(MACH_PORT_NULL, &master_port);
+    if (KERN_SUCCESS != kern_result) {
+        // Failed to get master port.
+        return 0;
+    }
     
     classes = IOServiceMatching(kIOSerialBSDServiceValue);
     if (classes == NULL) {
         // IOServiceMatching returned a NULL dictionary
-        return NULL;
+        return 0;
     }
-    // Look for devices that claim to be serial modems.
+    // Look for devices that claim to be serial ports.
     CFDictionarySetValue(classes, CFSTR(kIOSerialBSDTypeKey), CFSTR(kIOSerialBSDAllTypes));
-    kern_result = IOServiceGetMatchingServices(kIOMasterPortDefault, classes, matching_services);
+    kern_result = IOServiceGetMatchingServices(master_port, classes, &matching_services);
     if (KERN_SUCCESS  != kern_result) {
-        return NULL;
+        return 0;
     }
     
     struct list devices = {.first = NULL, .length = 0};
-    
     io_object_t modem_service;
-    Boolean modem_found = false;
-    while ((modem_service = IOIteratorNext(*matching_services)) && !modem_found) {
+    while ((modem_service = IOIteratorNext(matching_services))) {
         CFTypeRef bsd_path_cf_string;
         bsd_path_cf_string = IORegistryEntryCreateCFProperty(modem_service, CFSTR(kIODialinDeviceKey), kCFAllocatorDefault, 0);
         if (bsd_path_cf_string) {
@@ -167,16 +173,13 @@ char** open_dmx_get_devices () {
         }
         (void) IOObjectRelease(modem_service);
     }
-    
-    char** devices_array = (char**)malloc(devices.length * sizeof(char*));
-    list_array_freeing(&devices, devices_array, devices.length);
-    return devices_array;
+    return list_array_freeing(&devices, device_list, length);
 #elif __linux__
     // linux
 #else
 #   error "Unsupported platform"
 #endif
-    return NULL;
+    return 0;
 }
 
 #endif // _WIN32
