@@ -20,7 +20,13 @@
 #include <IOKit/IOBSD.h>
 #elif __linux__
 // Linux
+#include <unistd.h>
+#include <stdio.h>
 #include <glob.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <string.h>
+#include <time.h>
 #else
 #   error "Unsupported platform"
 #endif
@@ -61,7 +67,9 @@ opendmx_device *opendmx_open_device (const char *port_name) {
         goto error;     // failed to get settings
     }
     
+#ifdef __APPLE__
     cfmakeraw(&settings);           // Raw mode allows the use of ioctl
+#endif
     
     // Clear flags
     settings.c_cflag &= ~CREAD;     // Disables reading from the device
@@ -99,7 +107,7 @@ static int set_baud_rate (const int device, const int speed) {
     return 0;
 #elif __linux__
     // linux - use baud rate aliasing
-    ioctl(device, TIOCGSERIAL, &ss);
+//    ioctl(device, TIOCGSERIAL, &ss);
     // TODO actually make this work
 #else
 #   error "Unsupported platform"
