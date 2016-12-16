@@ -27,6 +27,12 @@
 #include <termios.h>
 #include <string.h>
 #include <time.h>
+
+#define SERIAL_PATH     "/sys/class/tty/*/device/driver"
+#define DEVICE_FORMAT   "/dev/%s"
+#define SYS_PREFIX_LENGTH   15
+#define SYS_POSTFIX_LENGTH  14
+
 #else
 #   error "Unsupported platform"
 #endif
@@ -179,13 +185,16 @@ int opendmx_set_slot (opendmx_device *device, int slot, uint8_t value) {
     return 0;
 }
 
+#ifdef __linux__
 static char *trim_path(char *path) {
-    char *sub_path = (path + (sizeof(char) * 15));
-    int len = (int)strlen(sub_path) - 14;
+    // /sys/class/tty/*/device/driver
+    char *sub_path = (path + (sizeof(char) * SYS_PREFIX_LENGTH));
+    int len = (int)strlen(sub_path) - SYS_POSTFIX_LENGTH;
     char* str = (char*)malloc(sizeof(char) * len);
     strncpy(str, sub_path, len);
     return str;
 }
+#endif
 
 struct opendmx_iterator *open_dmx_get_devices () {
 #ifdef __APPLE__
@@ -238,8 +247,7 @@ struct opendmx_iterator *open_dmx_get_devices () {
     return device_list;
 #elif __linux__
     // linux
-    char* name = "/sys/class/tty/*/device/driver";
-    
+    char* name = SERIAL_PATH;
     struct list *devices = (struct list *)malloc(sizeof(struct list));
     devices->first = NULL;
     devices->length = 0;
@@ -250,15 +258,12 @@ struct opendmx_iterator *open_dmx_get_devices () {
     
     glob(name, 0, 0, &globed_paths);
     num_paths = globed_paths.gl_pathc;
-    if (num_paths > 0) {
-        for (paths = globed_paths.gl_pathv; num_paths > 0; paths++, num_paths--) {
-            char *p = trim_path(*paths);
-            char *path = list_append(devices, (int)strlen(p) + 6);
-            snprintf(path, strlen(path), "/dev/%s\n", trim_path(p));
-            free(p);
-        }
-    } else {
-        printf("path not found\n");
+    for (paths = globed_paths.gl_pathv; num_paths > 0; paths++, num_paths--) {
+        char *p = trim_path(*paths);
+        int len = (int)strlen(p) + 6;
+        char *path = list_append(devices, len);
+        snprintf(path, len, DEVICE_FORMAT, p);
+        free(p);
     }
     globfree(&globed_paths);
     
