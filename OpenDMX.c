@@ -110,6 +110,7 @@ static int set_baud_rate (const int device, const int speed) {
     if (ioctl(device, IOSSIOSPEED, &speed) == -1) {
         return -1;
     }
+    // That was easy
     return 0;
 #elif __linux__
     // linux - use baud rate aliasing
@@ -121,7 +122,7 @@ static int set_baud_rate (const int device, const int speed) {
 }
 
 static int send_packet (const opendmx_device *device) {
-    int break_byte = 0;
+    const break_byte = 0; // Need to define this as a constant so I that can get a pointer to it
     int error = set_baud_rate(device->device_desc, 76800);              // Drop to lower baud rate
     error = error || (write(device->device_desc, &break_byte, 1) != 1); // transmit a zero
     // At 76.8kbaud this will hold the line low for 104µs (break) then high (the stop bits) for 26µs (MAB)
@@ -132,25 +133,23 @@ static int send_packet (const opendmx_device *device) {
 }
 
 void *opendmx_thread (void *device) {
-    opendmx_start((opendmx_device*) device);
+    opendmx_start((opendmx_device*) device);    // Start the DMX device
     return NULL;
 }
 
 int opendmx_start (opendmx_device *device) {
     device->running = 1;
     device->error = 0;
-    uint8_t errors = 0;
-    while (device->running) {
-        if (send_packet(device)) {
-            errors++;
-        } else {
-            errors = 0;
-        }
-        if ((errors & 0b11111111) == 0) {
+    uint8_t errors = 0; // Tracks the number of frames which have failed to send
+    while (device->running) {   // Run as along as the device hasn't been told not to
+        errors = (errors << 1) | (send_packet(device) ? 1 : 0);
+        if ((errors & 0xFF) == 0xFF) {
+            // If 8 errors have occured in a row, stop DMX output and register an error. This usually means that the DMX output has been disconected.
             device->running = 0;
             device->error = 1;
             return -1;
         }
+        // Wait for the interpacket time
         struct timespec tim;
         tim.tv_sec = 0;
         tim.tv_nsec = opendmx_interpacket_time;
@@ -165,20 +164,19 @@ void open_dmx_stop (opendmx_device *device) {
 
 int opendmx_close_device (opendmx_device *device) {
     open_dmx_stop(device);
-    int result = close(device->device_desc);
-    if (result != 0) {
-        return result;
+    if (close(device->device_desc) != 0) {
+        return 1;
     }
     free(device);
     return 0;
 }
 
 uint8_t opendmx_get_slot (const opendmx_device *device, int slot) {
-    return ((0 <= slot) && (slot < 512)) ? device->slots[slot] : 0;
+    return ((0 <= slot) && (slot < OPENDMX_UNIVERSE_LENGTH)) ? device->slots[slot] : 0;
 }
 
 int opendmx_set_slot (opendmx_device *device, int slot, uint8_t value) {
-    if ((0 > slot) || (slot >= 512)) {
+    if ((0 > slot) || (slot >= OPENDMX_UNIVERSE_LENGTH)) {
         return -1;
     }
     device->slots[slot] = value;
@@ -187,10 +185,12 @@ int opendmx_set_slot (opendmx_device *device, int slot, uint8_t value) {
 
 #ifdef __linux__
 static char *trim_path(char *path) {
-    // /sys/class/tty/*/device/driver
+    // Get string starting at the beginig of the device name
     char *sub_path = (path + (sizeof(char) * SYS_PREFIX_LENGTH));
+    // Get the length of the char up to the end of the device name
     int len = (int)strlen(sub_path) - SYS_POSTFIX_LENGTH;
     char* str = (char*)malloc(sizeof(char) * len);
+    // Copy only the device name to a new string
     strncpy(str, sub_path, len);
     return str;
 }
@@ -227,10 +227,13 @@ struct opendmx_iterator *open_dmx_get_devices () {
     devices->length = 0;
     
     io_object_t modem_service;
+    // Iterates through the list of devices adding each device file to the list which will be returned
     while ((modem_service = IOIteratorNext(matching_services))) {
         CFTypeRef bsd_path_cf_string;
+        // Get the device file path
         bsd_path_cf_string = IORegistryEntryCreateCFProperty(modem_service, CFSTR(kIODialinDeviceKey), kCFAllocatorDefault, 0);
         if (bsd_path_cf_string) {
+            // If the device file path exists, append it to the list of paths
             char *path = list_append(devices, OPENDMX_MAX_DEV_NAME_LENGTH);
             Boolean result = CFStringGetCString(bsd_path_cf_string, path, OPENDMX_MAX_DEV_NAME_LENGTH, kCFStringEncodingUTF8);
             CFRelease(bsd_path_cf_string);
@@ -241,6 +244,7 @@ struct opendmx_iterator *open_dmx_get_devices () {
         }
         (void) IOObjectRelease(modem_service);
     }
+    // Create an return an iterator of the list of device files
     struct opendmx_iterator *device_list = (struct opendmx_iterator*)malloc(sizeof(struct opendmx_iterator));
     device_list->list = devices;
     device_list->iterator = list_iterator(devices);
@@ -256,13 +260,14 @@ struct opendmx_iterator *open_dmx_get_devices () {
     glob_t globed_paths;
     char **paths;
     
+    // Get all of the devices in /sys/class/tty which have a /device/driver file. And devices with out a driver to not acutally exist.
     glob(name, 0, 0, &globed_paths);
     num_paths = globed_paths.gl_pathc;
     for (paths = globed_paths.gl_pathv; num_paths > 0; paths++, num_paths--) {
-        char *p = trim_path(*paths);
+        char *p = trim_path(*paths);    // Trim everything but the device name from the path
         int len = (int)strlen(p) + 6;
         char *path = list_append(devices, len);
-        snprintf(path, len, DEVICE_FORMAT, p);
+        snprintf(path, len, DEVICE_FORMAT, p);  // Prepend /dev/ to the device name to get the device file path
         free(p);
     }
     globfree(&globed_paths);
