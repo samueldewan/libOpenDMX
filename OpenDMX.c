@@ -20,6 +20,7 @@
 #include <IOKit/IOBSD.h>
 #elif __linux__
 // Linux
+#include <glob.h>
 #else
 #   error "Unsupported platform"
 #endif
@@ -170,6 +171,14 @@ int opendmx_set_slot (opendmx_device *device, int slot, uint8_t value) {
     return 0;
 }
 
+static char *trim_path(char *path) {
+    char *sub_path = (path + (sizeof(char) * 15));
+    int len = (int)strlen(sub_path) - 14;
+    char* str = (char*)malloc(sizeof(char) * len);
+    strncpy(str, sub_path, len);
+    return str;
+}
+
 struct opendmx_iterator *open_dmx_get_devices () {
 #ifdef __APPLE__
     // macOS - use IOBSD
@@ -221,6 +230,34 @@ struct opendmx_iterator *open_dmx_get_devices () {
     return device_list;
 #elif __linux__
     // linux
+    char* name = "/sys/class/tty/*/device/driver";
+    
+    struct list *devices = (struct list *)malloc(sizeof(struct list));
+    devices->first = NULL;
+    devices->length = 0;
+    
+    size_t num_paths;
+    glob_t globed_paths;
+    char **paths;
+    
+    glob(name, 0, 0, &globed_paths);
+    num_paths = globed_paths.gl_pathc;
+    if (num_paths > 0) {
+        for (paths = globed_paths.gl_pathv; num_paths > 0; paths++, num_paths--) {
+            char *p = trim_path(*paths);
+            char *path = list_append(devices, (int)strlen(p) + 6);
+            snprintf(path, strlen(path), "/dev/%s\n", trim_path(p));
+            free(p);
+        }
+    } else {
+        printf("path not found\n");
+    }
+    globfree(&globed_paths);
+    
+    struct opendmx_iterator *device_list = (struct opendmx_iterator*)malloc(sizeof(struct opendmx_iterator));
+    device_list->list = devices;
+    device_list->iterator = list_iterator(devices);
+    return device_list;
 #else
 #   error "Unsupported platform"
 #endif
