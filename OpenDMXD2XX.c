@@ -6,7 +6,7 @@
 //  Copyright © 2016 Samuel Dewan. All rights reserved.
 //
 
-#ifdef _WIN32
+#ifdef OPENDMX_USE_D2XX
 
 #include "OpenDMX.h"
 
@@ -22,4 +22,4 @@ struct opendmx_iterator *opendmx_get_devices () {
     return NULL;
 }
 
-#endif // _WIN32
+#endif // OPENDMX_USE_D2XX

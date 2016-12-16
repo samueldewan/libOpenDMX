@@ -30,7 +30,8 @@
 #define DEVICE_FORMAT   "/dev/%s"
 #define SYS_PREFIX_LENGTH   15
 #define SYS_POSTFIX_LENGTH  14
-
+#elif _WIN32
+#define OPENDMX_USE_D2XX
 #else
 #   error "Unsupported platform"
 #endif
@@ -50,7 +51,7 @@ struct opendmx_iterator {
     struct list_iterator    *iterator;
 };
 
-# ifndef _WIN32
+# ifndef OPENDMX_USE_D2XX
 opendmx_device *opendmx_open_device (const char *port_name) {
     struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
     
@@ -102,7 +103,7 @@ error:
     
     return NULL;
 }
-#endif  //  _WIN32
+#endif  //  not OPENDMX_USE_D2XX
 
 static int set_baud_rate (const int device, const int speed) {
 #ifdef __APPLE__
@@ -137,7 +138,7 @@ void *opendmx_thread (void *device) {
     return NULL;
 }
 
-#ifndef _WIN32
+#ifndef OPENDMX_USE_D2XX
 int opendmx_start (opendmx_device *device) {
     device->running = 1;
     device->error = 0;
@@ -158,7 +159,7 @@ int opendmx_start (opendmx_device *device) {
     }
     return 0;
 }
-#endif // _WIN32
+#endif // not OPENDMX_USE_D2XX
 
 void opendmx_stop (opendmx_device *device) {
     device->running = 0;
@@ -198,7 +199,7 @@ static char *trim_path(char *path) {
 }
 #endif
 
-# ifndef _WIN32
+# ifndef OPENDMX_USE_D2XX
 struct opendmx_iterator *opendmx_get_devices () {
 #ifdef __APPLE__
     // macOS - use IOBSD
@@ -284,7 +285,7 @@ struct opendmx_iterator *opendmx_get_devices () {
 #endif
     return 0;
 }
-#endif // _WIN32
+#endif // not OPENDMX_USE_D2XX
 
 int opendmx_is_running (opendmx_device *device) {
     return device->running;
