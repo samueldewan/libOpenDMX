@@ -60,7 +60,7 @@ extern int opendmx_start (opendmx_device *device);
  *  Stops DMX output.
  *  @param device The device for which the DMX output is to be stopped.
  */
-extern void open_dmx_stop (opendmx_device *device);
+extern void opendmx_stop (opendmx_device *device);
 
 /**
  *  Closes and frees opendmx device.
@@ -104,7 +104,7 @@ extern int opendmx_has_error (opendmx_device *device);
  *  @note Devices listed are not nessasarly openDMX devices, and may not even support DMX output at all (the only real requirment is that the device supports 250kbaud and 72.8k baud)
  *  @returns An iterator for the avaliable serial ports.
  */
-extern struct opendmx_iterator *open_dmx_get_devices ();
+extern struct opendmx_iterator *opendmx_get_devices ();
 
 /**
  *  Get the next item from an opendmx iterator.

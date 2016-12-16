@@ -6,8 +6,6 @@
 //  Copyright © 2016 Samuel Dewan. All rights reserved.
 //
 
-# ifndef _WIN32
-
 #include "OpenDMX.h"
 #include "LinkedList.h"
 
@@ -52,6 +50,7 @@ struct opendmx_iterator {
     struct list_iterator    *iterator;
 };
 
+# ifndef _WIN32
 opendmx_device *opendmx_open_device (const char *port_name) {
     struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
     
@@ -103,6 +102,7 @@ error:
     
     return NULL;
 }
+#endif  //  _WIN32
 
 static int set_baud_rate (const int device, const int speed) {
 #ifdef __APPLE__
@@ -137,6 +137,7 @@ void *opendmx_thread (void *device) {
     return NULL;
 }
 
+#ifndef _WIN32
 int opendmx_start (opendmx_device *device) {
     device->running = 1;
     device->error = 0;
@@ -157,13 +158,14 @@ int opendmx_start (opendmx_device *device) {
     }
     return 0;
 }
+#endif // _WIN32
 
-void open_dmx_stop (opendmx_device *device) {
+void opendmx_stop (opendmx_device *device) {
     device->running = 0;
 }
 
 int opendmx_close_device (opendmx_device *device) {
-    open_dmx_stop(device);
+    opendmx_stop(device);
     if (close(device->device_desc) != 0) {
         return 1;
     }
@@ -196,7 +198,8 @@ static char *trim_path(char *path) {
 }
 #endif
 
-struct opendmx_iterator *open_dmx_get_devices () {
+# ifndef _WIN32
+struct opendmx_iterator *opendmx_get_devices () {
 #ifdef __APPLE__
     // macOS - use IOBSD
     kern_return_t kern_result;
@@ -281,6 +284,7 @@ struct opendmx_iterator *open_dmx_get_devices () {
 #endif
     return 0;
 }
+#endif // _WIN32
 
 int opendmx_is_running (opendmx_device *device) {
     return device->running;
@@ -312,5 +316,3 @@ void opendmx_iterator_free (struct opendmx_iterator *iter) {
 int opendmx_iterator_to_array (const struct opendmx_iterator *iter, char **buffer, int max_entries) {
     return list_array(iter->list, buffer, max_entries);
 }
-
-#endif // _WIN32
