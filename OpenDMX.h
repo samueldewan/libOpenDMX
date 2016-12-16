@@ -9,24 +9,7 @@
 #ifndef OpenDMX_h
 #define OpenDMX_h
 
-#include <unistd.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <sys/ioctl.h>
-#include <sys/time.h>
 #include <inttypes.h>
-
-#ifdef __APPLE__
-// macOS
-#include <IOKit/IOKitLib.h>
-#include <IOKit/serial/IOSerialKeys.h>
-#include <IOKit/IOBSD.h>
-#elif __linux__
-// Linux
-#else
-#   error "Unsupported platform"
-#endif
 
 #define OPENDMX_UNIVERSE_LENGTH     512
 // Packet length = 104µs (break) + 26µs (MAB) + 40µs (start) + 20480µs (slots) = 20650000 nanoseconds
@@ -157,6 +140,6 @@ int opendmx_iterator_to_array (const struct opendmx_iterator *iter, char **buffe
  *  Frees an opendmx iterator and all of it's associated values.
  *  @param iter The iterator.
  */
-extern void opendmx_iterator_free (const struct opendmx_iterator *iter);
+extern void opendmx_iterator_free (struct opendmx_iterator *iter);
 
 #endif /* OpenDMX_h */

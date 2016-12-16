@@ -11,6 +11,19 @@
 #include "OpenDMX.h"
 #include "LinkedList.h"
 
+#include <sys/ioctl.h>
+#include <sys/time.h>
+
+#ifdef __APPLE__
+// macOS
+#include <IOKit/serial/IOSerialKeys.h>
+#include <IOKit/IOBSD.h>
+#elif __linux__
+// Linux
+#else
+#   error "Unsupported platform"
+#endif
+
 uint8_t opendmx_start_byte;
 long opendmx_interpacket_time = OPENDMX_PERIOD_MID;
 
@@ -235,7 +248,7 @@ int opendmx_iterator_length (const struct opendmx_iterator *iter) {
     return iter->list->length;
 }
 
-void opendmx_iterator_free (const struct opendmx_iterator *iter) {
+void opendmx_iterator_free (struct opendmx_iterator *iter) {
     free(iter->iterator);
     list_free(iter->list);
     free(iter);
