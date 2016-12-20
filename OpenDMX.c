@@ -12,7 +12,7 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 
-#define OPENDMX_USE_D2XX
+//#define OPENDMX_USE_D2XX
 
 #ifdef __APPLE__
 // macOS
@@ -99,7 +99,7 @@ opendmx_device *opendmx_open_device (char *port_name) {
     
     // Initialize universe
     for (int i = 0; i < 512; i++) {
-        this->values[i] = 0;
+        device->slots[i] = 0;
     }
     
     // It worked!
