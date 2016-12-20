@@ -39,7 +39,7 @@ extern long opendmx_interpacket_time;
  *  @param device_file Path to the serial device to be used, must support 250k and 76.8k baud
  *  @returns A pointer to an opendmx_handle, or NULL if device creation failed
  */
-extern opendmx_device *opendmx_open_device(const char* device_file);
+extern opendmx_device *opendmx_open_device(char* device_file);
 
 /**
  *  A helper function designed to be used with a pthread. Calls opendmx_start.

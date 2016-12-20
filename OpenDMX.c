@@ -12,6 +12,8 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 
+#define OPENDMX_USE_D2XX
+
 #ifdef __APPLE__
 // macOS
 #include <IOKit/serial/IOSerialKeys.h>
@@ -40,7 +42,7 @@ uint8_t opendmx_start_byte;
 long opendmx_interpacket_time = OPENDMX_PERIOD_MID;
 
 typedef struct opendmx_handle {
-    int             device_desc;
+    void*           device_desc;
     volatile int    running:1;
     volatile int    error:1;
     uint8_t         slots[OPENDMX_UNIVERSE_LENGTH];
@@ -51,25 +53,29 @@ struct opendmx_iterator {
     struct list_iterator    *iterator;
 };
 
+static int send_packet (const opendmx_device *device);
+static int close_output (const opendmx_device *device);
+
 # ifndef OPENDMX_USE_D2XX
-opendmx_device *opendmx_open_device (const char *port_name) {
+opendmx_device *opendmx_open_device (char *port_name) {
     struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
     
     // Get device file
-    device->device_desc = open(port_name, O_RDWR | O_NOCTTY | O_NDELAY | O_ASYNC);
-    if (device->device_desc == -1) {
+    int dev = open(port_name, O_RDWR | O_NOCTTY | O_NDELAY | O_ASYNC);
+    device->device_desc = (void*) &dev;
+    if (*(int*)device->device_desc == -1) {
         goto error;     // failed to open device
     }
     
     // Now that device is open, enable blocking on further IO ops
-    if (fcntl(device->device_desc, F_SETFL, 0) == -1) {
+    if (fcntl(*(int*)device->device_desc, F_SETFL, 0) == -1) {
         goto error;     // failed enable blocking
     }
     
     // Get current settings
     struct termios settings;
 
-    if (tcgetattr(device->device_desc, &settings) != 0) {
+    if (tcgetattr(*(int*)device->device_desc, &settings) != 0) {
         goto error;     // failed to get settings
     }
     
@@ -87,8 +93,13 @@ opendmx_device *opendmx_open_device (const char *port_name) {
     settings.c_cflag |= CSTOPB;     // 2 stop bits
     
     // Apply settings (apply right-away, clear io buffers)
-    if (tcsetattr(device->device_desc, TCSAFLUSH, &settings) != 0) {
+    if (tcsetattr(*(int*)device->device_desc, TCSAFLUSH, &settings) != 0) {
         goto error;     // failed to set settings
+    }
+    
+    // Initialize universe
+    for (int i = 0; i < 512; i++) {
+        this->values[i] = 0;
     }
     
     // It worked!
@@ -96,14 +107,14 @@ opendmx_device *opendmx_open_device (const char *port_name) {
     
     // Falure path
 error:
-    if (device->device_desc != -1) {
-        close(device->device_desc);
+    if (*(int*)device->device_desc != -1) {
+        close(*(int*)device->device_desc);
     }
     free(device);
     
     return NULL;
 }
-#endif  //  not OPENDMX_USE_D2XX
+
 
 static int set_baud_rate (const int device, const int speed) {
 #ifdef __APPLE__
@@ -123,22 +134,27 @@ static int set_baud_rate (const int device, const int speed) {
 }
 
 static int send_packet (const opendmx_device *device) {
-    const break_byte = 0; // Need to define this as a constant so I that can get a pointer to it
-    int error = set_baud_rate(device->device_desc, 76800);              // Drop to lower baud rate
-    error = error || (write(device->device_desc, &break_byte, 1) != 1); // transmit a zero
+    const int break_byte = 0; // Need to define this as a constant so I that can get a pointer to it
+    int error = set_baud_rate(*(int*)device->device_desc, 76800);              // Drop to lower baud rate
+    error = error || (write(*(int*)device->device_desc, &break_byte, 1) != 1); // transmit a zero
     // At 76.8kbaud this will hold the line low for 104µs (break) then high (the stop bits) for 26µs (MAB)
-    error = error || set_baud_rate(device->device_desc, 250000);        // Return to the porper baud rate
-    error = error || (write(device->device_desc, &opendmx_start_byte, 1)  != 1);// send the start code
-    error = error || (write(device->device_desc, device->slots, OPENDMX_UNIVERSE_LENGTH) != OPENDMX_UNIVERSE_LENGTH);// send the DMX slots
+    error = error || set_baud_rate(*(int*)device->device_desc, 250000);        // Return to the proper baud rate
+    error = error || (write(*(int*)device->device_desc, &opendmx_start_byte, 1)  != 1);// send the start code
+    error = error || (write(*(int*)device->device_desc, device->slots, OPENDMX_UNIVERSE_LENGTH) != OPENDMX_UNIVERSE_LENGTH);// send the DMX slots
     return error;
 }
+
+static int close_output (const opendmx_device *device) {
+    return (close(*(int*)device->device_desc) != 0);
+}
+
+#endif  //  not OPENDMX_USE_D2XX
 
 void *opendmx_thread (void *device) {
     opendmx_start((opendmx_device*) device);    // Start the DMX device
     return NULL;
 }
 
-#ifndef OPENDMX_USE_D2XX
 int opendmx_start (opendmx_device *device) {
     device->running = 1;
     device->error = 0;
@@ -159,7 +175,6 @@ int opendmx_start (opendmx_device *device) {
     }
     return 0;
 }
-#endif // not OPENDMX_USE_D2XX
 
 void opendmx_stop (opendmx_device *device) {
     device->running = 0;
@@ -167,9 +182,9 @@ void opendmx_stop (opendmx_device *device) {
 
 int opendmx_close_device (opendmx_device *device) {
     opendmx_stop(device);
-    if (close(device->device_desc) != 0) {
-        return 1;
-    }
+    if (close_output(device) != 0) return 1;
+    free(device->slots);
+    free(device->device_desc);
     free(device);
     return 0;
 }
@@ -186,6 +201,7 @@ int opendmx_set_slot (opendmx_device *device, int slot, uint8_t value) {
     return 0;
 }
 
+# ifndef OPENDMX_USE_D2XX
 #ifdef __linux__
 static char *trim_path(char *path) {
     // Get string starting at the beginig of the device name
@@ -199,7 +215,6 @@ static char *trim_path(char *path) {
 }
 #endif
 
-# ifndef OPENDMX_USE_D2XX
 struct opendmx_iterator *opendmx_get_devices () {
 #ifdef __APPLE__
     // macOS - use IOBSD
@@ -264,7 +279,7 @@ struct opendmx_iterator *opendmx_get_devices () {
     glob_t globed_paths;
     char **paths;
     
-    // Get all of the devices in /sys/class/tty which have a /device/driver file. And devices with out a driver to not acutally exist.
+    // Get all of the devices in /sys/class/tty which have a /device/driver file. Any devices with out a driver most likely do not acutally exist.
     glob(name, 0, 0, &globed_paths);
     num_paths = globed_paths.gl_pathc;
     for (paths = globed_paths.gl_pathv; num_paths > 0; paths++, num_paths--) {
@@ -317,3 +332,92 @@ void opendmx_iterator_free (struct opendmx_iterator *iter) {
 int opendmx_iterator_to_array (const struct opendmx_iterator *iter, char **buffer, int max_entries) {
     return list_array(iter->list, buffer, max_entries);
 }
+
+
+
+//-------D2XX--------
+#ifdef OPENDMX_USE_D2XX
+#include "/usr/local/include/ftd2xx.h"
+
+opendmx_device *opendmx_open_device(char* serial_number) {
+    struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
+    
+    FT_STATUS ftstatus;
+    
+    // Open the device
+    ftstatus = FT_OpenEx(serial_number, FT_OPEN_BY_SERIAL_NUMBER, &device->device_desc);
+    if (ftstatus != FT_OK) goto error;
+    
+    // Set device settings
+    ftstatus = FT_SetBaudRate(device->device_desc, 250000);
+    if (ftstatus != FT_OK) goto error_with_open_device;
+    ftstatus = FT_SetDataCharacteristics(device->device_desc, FT_BITS_8, FT_STOP_BITS_2, FT_PARITY_NONE);
+    if (ftstatus != FT_OK) goto error_with_open_device;
+    
+    // Initialize universe
+    for (int i = 0; i < 512; i++) {
+        device->slots[i] = 0;
+    }
+    
+    return device;
+    
+error_with_open_device:
+    FT_Close(device->device_desc);
+error:
+    free(device);
+    return NULL;
+}
+
+static int send_packet (const opendmx_device *device) {
+    const int break_byte = 0; // Need to define this as a constant so I that can get a pointer to it
+    int bytes_sent = 0;
+    int error = FT_SetBaudRate(device->device_desc, 76800) != FT_OK;                        // Drop to lower baud rate
+    error = error || FT_Write(device->device_desc, &break_byte, 1, &bytes_sent)  != FT_OK;  // transmit a zero
+    error = error || bytes_sent != 1;
+    // At 76.8kbaud this will hold the line low for 104µs (break) then high (the stop bits) for 26µs (MAB)
+    error = error || FT_SetBaudRate(device->device_desc, 250000) != FT_OK;                  // Return to the proper baud rate
+    error = error || FT_Write(device->device_desc, &opendmx_start_byte, 1, bytes_sent) != FT_OK;// send the start code
+    error = error || bytes_sent != 1;
+    error = error || FT_Write(device->device_desc, device->slots, OPENDMX_UNIVERSE_LENGTH, bytes_sent) != FT_OK;  // send the DMX slots
+    error = error || bytes_sent != OPENDMX_UNIVERSE_LENGTH;
+    return error;
+}
+
+static int close_output (const opendmx_device *device) {
+    return FT_Close(device->device_desc) != FT_OK;
+}
+
+struct opendmx_iterator *opendmx_get_devices () {
+    FT_STATUS ftstatus;
+    unsigned int num_devs;
+    
+    struct list *devices = (struct list *)malloc(sizeof(struct list));
+    devices->first = NULL;
+    devices->length = 0;
+
+    ftstatus = FT_ListDevices(&num_devs,NULL,FT_LIST_NUMBER_ONLY);
+    if (ftstatus != FT_OK) goto error;
+    
+    for (int i = 0; i < num_devs; i++) {
+        list_append(devices, 64);
+    }
+    
+    char **serial_nums = (char**) malloc(sizeof(char*) * num_devs + 1);
+    list_array(devices, serial_nums, num_devs);
+    serial_nums[num_devs] = NULL;
+    
+    ftstatus = FT_ListDevices(serial_nums, &num_devs, FT_LIST_ALL|FT_OPEN_BY_SERIAL_NUMBER);
+    
+    free(serial_nums);
+    
+    // Create an return an iterator of the list of device files
+    struct opendmx_iterator *device_list = (struct opendmx_iterator*)malloc(sizeof(struct opendmx_iterator));
+    device_list->list = devices;
+    device_list->iterator = list_iterator(devices);
+    return device_list;
+error:
+    list_free(devices);
+    return NULL;
+}
+
+#endif // OPENDMX_USE_D2XX
