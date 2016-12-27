@@ -37,6 +37,7 @@
 		BC49561A1DF0823200E94C70 /* OpenDMX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenDMX.h; sourceTree = "<group>"; };
 		BC4D595F1DFB0E9A00C16732 /* LinkedList.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LinkedList.c; sourceTree = "<group>"; };
 		BC4D59601DFB0E9A00C16732 /* LinkedList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinkedList.h; sourceTree = "<group>"; };
+		BC4E37F81E12D782001485C6 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		BCFB92E11E08B29D0095C935 /* libftd2xx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libftd2xx.a; path = ../../../../../usr/local/lib/libftd2xx.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -75,6 +76,7 @@
 				BC4956191DF0823200E94C70 /* OpenDMX.c */,
 				BC4D59601DFB0E9A00C16732 /* LinkedList.h */,
 				BC4D595F1DFB0E9A00C16732 /* LinkedList.c */,
+				BC4E37F81E12D782001485C6 /* Makefile */,
 				BC31D6681DFDEB1C0075ED34 /* Tests */,
 				BC4956131DF07E0F00E94C70 /* Products */,
 				BCFB92DC1E08AEDF0095C935 /* Frameworks */,

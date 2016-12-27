@@ -6,11 +6,14 @@
 //  Copyright © 2016 Samuel Dewan. All rights reserved.
 //
 
+#define _XOPEN_SOURCE 800
+
 #include "OpenDMX.h"
 #include "LinkedList.h"
 
 #include <sys/ioctl.h>
 #include <sys/time.h>
+
 
 //#define OPENDMX_USE_D2XX
 
@@ -38,13 +41,18 @@
 #   error "Unsupported platform"
 #endif
 
-uint8_t opendmx_start_byte;
-long opendmx_interpacket_time = OPENDMX_PERIOD_MID;
+uint8_t opendmx_start_byte = 0;
+long opendmx_interpacket_time = OPENDMX_PERIOD_LOW;
 
 typedef struct opendmx_handle {
-    void*           device_desc;
+#ifdef OPENDMX_USE_D2XX
+    void*           ftdi_handle;
+#else
+    int             device_handle;
+#endif
     volatile int    running:1;
     volatile int    error:1;
+    volatile int    lock:1;
     uint8_t         slots[OPENDMX_UNIVERSE_LENGTH];
 } opendmx_device;
 
@@ -61,54 +69,63 @@ opendmx_device *opendmx_open_device (char *port_name) {
     struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
     
     // Get device file
-    int dev = open(port_name, O_RDWR | O_NOCTTY | O_NDELAY | O_ASYNC);
-    device->device_desc = (void*) &dev;
-    if (*(int*)device->device_desc == -1) {
+    device->device_handle = open(port_name, O_WRONLY | O_NOCTTY | O_NDELAY | O_ASYNC);
+    if (device->device_handle == -1) {
         goto error;     // failed to open device
     }
     
+    // Block further attempts to open device while we are using it
+    if (ioctl(device->device_handle, TIOCEXCL) != 0) {
+        goto error;
+    }
+    
     // Now that device is open, enable blocking on further IO ops
-    if (fcntl(*(int*)device->device_desc, F_SETFL, 0) == -1) {
-        goto error;     // failed enable blocking
+    if (fcntl(device->device_handle, F_SETFL, 0) != 0) {
+        goto error;     // failed to enable blocking
     }
     
     // Get current settings
     struct termios settings;
 
-    if (tcgetattr(*(int*)device->device_desc, &settings) != 0) {
+    if (tcgetattr(device->device_handle, &settings) != 0) {
         goto error;     // failed to get settings
     }
     
-#ifdef __APPLE__
-    cfmakeraw(&settings);           // Raw mode allows the use of ioctl
-#endif
+    #ifdef __APPLE__
+    cfmakeraw(&settings);            // Raw mode allows the use of ioctl
+    #endif
     
     // Clear flags
-    settings.c_cflag &= ~CREAD;     // Disables reading from the device
-    settings.c_cflag &= ~PARENB;    // Disables parity bit
+    settings.c_cc[VMIN] = 1;
+    settings.c_cc[VTIME] = 10;
+    
+    settings.c_cflag &= ~(CREAD | PARENB | CSIZE);
+    settings.c_oflag &= ~(OCRNL | ONLCR | ONLRET |  ONOCR | ONOEOT| OFILL | OPOST | OXTABS);
+    settings.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
     
     // Set flags
-    settings.c_cflag |= CLOCAL;     // Ignores status lines
-    settings.c_cflag |= CS8;        // 8 data bits
-    settings.c_cflag |= CSTOPB;     // 2 stop bits
+    settings.c_cflag |= (CLOCAL | CSTOPB);
+    settings.c_cflag |= CS8;
     
     // Apply settings (apply right-away, clear io buffers)
-    if (tcsetattr(*(int*)device->device_desc, TCSAFLUSH, &settings) != 0) {
+    if (tcsetattr(device->device_handle, TCSAFLUSH, &settings) != 0) {
         goto error;     // failed to set settings
     }
     
     // Initialize universe
-    for (int i = 0; i < 512; i++) {
+    for (int i = 0; i < OPENDMX_UNIVERSE_LENGTH; i++) {
         device->slots[i] = 0;
     }
+    
+    device->lock = 0;
     
     // It worked!
     return device;
     
     // Falure path
 error:
-    if (*(int*)device->device_desc != -1) {
-        close(*(int*)device->device_desc);
+    if (device->device_handle != -1) {
+        close(device->device_handle);
     }
     free(device);
     
@@ -119,15 +136,13 @@ error:
 static int set_baud_rate (const int device, const int speed) {
 #ifdef __APPLE__
     // macOS - use ioctl
-    if (ioctl(device, IOSSIOSPEED, &speed) == -1) {
-        return -1;
-    }
+    return (ioctl(device, IOSSIOSPEED, &speed) != 0);
     // That was easy
     return 0;
 #elif __linux__
-    // linux - use baud rate aliasing
-//    ioctl(device, TIOCGSERIAL, &ss);
-    // TODO actually make this work
+//    struct serial_struct ser;
+//    ioctl (device->device_handle, TIOCGSERIAL, &ser);
+//    printf("%d", ser.base_baud);
 #else
 #   error "Unsupported platform"
 #endif
@@ -135,17 +150,19 @@ static int set_baud_rate (const int device, const int speed) {
 
 static int send_packet (const opendmx_device *device) {
     const int break_byte = 0; // Need to define this as a constant so I that can get a pointer to it
-    int error = set_baud_rate(*(int*)device->device_desc, 76800);              // Drop to lower baud rate
-    error = error || (write(*(int*)device->device_desc, &break_byte, 1) != 1); // transmit a zero
-    // At 76.8kbaud this will hold the line low for 104µs (break) then high (the stop bits) for 26µs (MAB)
-    error = error || set_baud_rate(*(int*)device->device_desc, 250000);        // Return to the proper baud rate
-    error = error || (write(*(int*)device->device_desc, &opendmx_start_byte, 1)  != 1);// send the start code
-    error = error || (write(*(int*)device->device_desc, device->slots, OPENDMX_UNIVERSE_LENGTH) != OPENDMX_UNIVERSE_LENGTH);// send the DMX slots
+    int error = tcdrain(device->device_handle);
+    error = error || set_baud_rate(device->device_handle, 56000);         // Drop to lower baud rate
+    error = error || (write(device->device_handle, &break_byte, 1) != 1); // transmit a zero
+    error = error || tcdrain(device->device_handle);
+    // At 56kbaud this will hold the line low for 143µs (break) then high (the stop bits) for 36µs (MAB)
+    error = error || set_baud_rate(device->device_handle, 250000);        // Return to the proper baud rate
+    error = error || (write(device->device_handle, &opendmx_start_byte, 1)  != 1);// send the start code
+    error = error || (write(device->device_handle, device->slots, OPENDMX_UNIVERSE_LENGTH) != OPENDMX_UNIVERSE_LENGTH);// send the DMX slots
     return error;
 }
 
 static int close_output (const opendmx_device *device) {
-    return (close(*(int*)device->device_desc) != 0);
+    return (close(device->device_handle) != 0);
 }
 
 #endif  //  not OPENDMX_USE_D2XX
@@ -160,13 +177,17 @@ int opendmx_start (opendmx_device *device) {
     device->error = 0;
     uint8_t errors = 0; // Tracks the number of frames which have failed to send
     while (device->running) {   // Run as along as the device hasn't been told not to
+        int lock_status = device->lock;
+        device->lock = 1;
         errors = (errors << 1) | (send_packet(device) ? 1 : 0);
         if ((errors & 0xFF) == 0xFF) {
-            // If 8 errors have occured in a row, stop DMX output and register an error. This usually means that the DMX output has been disconected.
+            // If 8 errors have occured in a row, stop DMX output and register an error. This usually means that the DMX output device has been disconected.
             device->running = 0;
             device->error = 1;
+            device->lock = lock_status;
             return -1;
         }
+        device->lock = lock_status;
         // Wait for the interpacket time
         struct timespec tim;
         tim.tv_sec = 0;
@@ -182,9 +203,8 @@ void opendmx_stop (opendmx_device *device) {
 
 int opendmx_close_device (opendmx_device *device) {
     opendmx_stop(device);
+    while (device->lock);
     if (close_output(device) != 0) return 1;
-    free(device->slots);
-    free(device->device_desc);
     free(device);
     return 0;
 }
@@ -345,24 +365,27 @@ opendmx_device *opendmx_open_device(char* serial_number) {
     FT_STATUS ftstatus;
     
     // Open the device
-    ftstatus = FT_OpenEx(serial_number, FT_OPEN_BY_SERIAL_NUMBER, &device->device_desc);
+    ftstatus = FT_OpenEx(serial_number, FT_OPEN_BY_SERIAL_NUMBER, &device->ftdi_handle);
+//    ftstatus = FT_Open(0, &device->ftdi_handle);
     if (ftstatus != FT_OK) goto error;
     
     // Set device settings
-    ftstatus = FT_SetBaudRate(device->device_desc, 250000);
+    ftstatus = FT_SetBaudRate(device->ftdi_handle, 250000);
     if (ftstatus != FT_OK) goto error_with_open_device;
-    ftstatus = FT_SetDataCharacteristics(device->device_desc, FT_BITS_8, FT_STOP_BITS_2, FT_PARITY_NONE);
+    ftstatus = FT_SetDataCharacteristics(device->ftdi_handle, FT_BITS_8, FT_STOP_BITS_2, FT_PARITY_NONE);
     if (ftstatus != FT_OK) goto error_with_open_device;
     
     // Initialize universe
-    for (int i = 0; i < 512; i++) {
+    for (int i = 0; i < OPENDMX_UNIVERSE_LENGTH; i++) {
         device->slots[i] = 0;
     }
+    
+    device->lock = 0;
     
     return device;
     
 error_with_open_device:
-    FT_Close(device->device_desc);
+    FT_Close(device->ftdi_handle);
 error:
     free(device);
     return NULL;
@@ -371,20 +394,20 @@ error:
 static int send_packet (const opendmx_device *device) {
     const int break_byte = 0; // Need to define this as a constant so I that can get a pointer to it
     int bytes_sent = 0;
-    int error = FT_SetBaudRate(device->device_desc, 76800) != FT_OK;                        // Drop to lower baud rate
-    error = error || FT_Write(device->device_desc, &break_byte, 1, &bytes_sent)  != FT_OK;  // transmit a zero
+    int error = FT_SetBaudRate(device->ftdi_handle, 56000) != FT_OK;                        // Drop to lower baud rate
+    error = error || FT_Write(device->ftdi_handle, &break_byte, 1, &bytes_sent)  != FT_OK;  // transmit a zero
     error = error || bytes_sent != 1;
     // At 76.8kbaud this will hold the line low for 104µs (break) then high (the stop bits) for 26µs (MAB)
-    error = error || FT_SetBaudRate(device->device_desc, 250000) != FT_OK;                  // Return to the proper baud rate
-    error = error || FT_Write(device->device_desc, &opendmx_start_byte, 1, bytes_sent) != FT_OK;// send the start code
+    error = error || FT_SetBaudRate(device->ftdi_handle, 250000) != FT_OK;                  // Return to the proper baud rate
+    error = error || FT_Write(device->ftdi_handle, &opendmx_start_byte, 1, &bytes_sent) != FT_OK;// send the start code
     error = error || bytes_sent != 1;
-    error = error || FT_Write(device->device_desc, device->slots, OPENDMX_UNIVERSE_LENGTH, bytes_sent) != FT_OK;  // send the DMX slots
+    error = error || FT_Write(device->ftdi_handle, device->slots, OPENDMX_UNIVERSE_LENGTH, &bytes_sent) != FT_OK;  // send the DMX slots
     error = error || bytes_sent != OPENDMX_UNIVERSE_LENGTH;
     return error;
 }
 
 static int close_output (const opendmx_device *device) {
-    return FT_Close(device->device_desc) != FT_OK;
+    return FT_Close(device->ftdi_handle) != FT_OK;
 }
 
 struct opendmx_iterator *opendmx_get_devices () {
