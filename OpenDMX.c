@@ -16,6 +16,9 @@
 
 #define OPENDMX_USE_D2XX
 
+#define OPENDMX_DATA_BAUD_RATE 250000
+#define OPENDMX_BREAK_BAUD_RATE 56000   // At 56kbaud this will hold the line low for 143µs (break) then high (the stop bits) for 36µs (MAB)
+
 #ifdef __APPLE__
 // macOS
 #include <IOKit/serial/IOSerialKeys.h>
@@ -174,10 +177,9 @@ static int set_baud_rate (const int device, const int speed) {
 
 static int send_packet (const opendmx_device *device) {
     const int break_byte = 0; // Need to define this as a constant so I that can get a pointer to it
-    int error = set_baud_rate(device->device_handle, 56000);         // Drop to lower baud rate
+    int error = set_baud_rate(device->device_handle, OPENDMX_BREAK_BAUD_RATE);         // Drop to lower baud rate
     error = error || (write(device->device_handle, &break_byte, 1) != 1); // transmit a zero
-    // At 56kbaud this will hold the line low for 143µs (break) then high (the stop bits) for 36µs (MAB)
-    error = error || set_baud_rate(device->device_handle, 250000);        // Return to the proper baud rate
+    error = error || set_baud_rate(device->device_handle, OPENDMX_DATA_BAUD_RATE);        // Return to the proper baud rate
     error = error || (write(device->device_handle, &opendmx_start_byte, 1)  != 1); // send the start code
     error = error || (write(device->device_handle, device->slots, OPENDMX_UNIVERSE_LENGTH) != OPENDMX_UNIVERSE_LENGTH);// send the DMX slots
     return error;
@@ -416,11 +418,10 @@ error:
 static int send_packet (opendmx_device *device) {
     int break_byte = 0; // Need to define this as a variable so I that can get a pointer to it
     uint bytes_sent = 0;
-    int error = FT_SetBaudRate(device->ftdi_handle, 56000) != FT_OK;                        // Drop to lower baud rate
+    int error = FT_SetBaudRate(device->ftdi_handle, OPENDMX_BREAK_BAUD_RATE) != FT_OK;                        // Drop to lower baud rate
     error = error || FT_Write(device->ftdi_handle, &break_byte, 1, &bytes_sent)  != FT_OK;  // transmit a zero
     error = error || bytes_sent != 1;
-    // At 76.8kbaud this will hold the line low for 104µs (break) then high (the stop bits) for 26µs (MAB)
-    error = error || FT_SetBaudRate(device->ftdi_handle, 250000) != FT_OK;                  // Return to the proper baud rate
+    error = error || FT_SetBaudRate(device->ftdi_handle, OPENDMX_DATA_BAUD_RATE) != FT_OK;                  // Return to the proper baud rate
     error = error || FT_Write(device->ftdi_handle, &opendmx_start_byte, 1, &bytes_sent) != FT_OK;// send the start code
     error = error || bytes_sent != 1;
     error = error || FT_Write(device->ftdi_handle, device->slots, OPENDMX_UNIVERSE_LENGTH, &bytes_sent) != FT_OK;  // send the DMX slots
