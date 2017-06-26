@@ -14,8 +14,7 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 
-
-//#define OPENDMX_USE_D2XX
+#define OPENDMX_USE_D2XX
 
 #ifdef __APPLE__
 // macOS
@@ -30,11 +29,15 @@
 #include <termios.h>
 #include <string.h>
 #include <time.h>
+#include <stdlib.h>
+
+#include <linux/serial.h>
 
 #define SERIAL_PATH     "/sys/class/tty/*/device/driver"
 #define DEVICE_FORMAT   "/dev/%s"
 #define SYS_PREFIX_LENGTH   15
 #define SYS_POSTFIX_LENGTH  14
+
 #elif _WIN32
 #define OPENDMX_USE_D2XX
 #else
@@ -46,14 +49,14 @@ long opendmx_interpacket_time = OPENDMX_PERIOD_LOW;
 
 typedef struct opendmx_handle {
 #ifdef OPENDMX_USE_D2XX
-    void*           ftdi_handle;
+    void                    *ftdi_handle;
 #else
-    int             device_handle;
+    int                     device_handle;
 #endif
-    volatile int    running:1;
-    volatile int    error:1;
-    volatile int    lock:1;
-    uint8_t         slots[OPENDMX_UNIVERSE_LENGTH];
+    volatile unsigned int   running:1;
+    volatile unsigned int   error:1;
+    volatile unsigned int   lock:1;
+    uint8_t                 slots[OPENDMX_UNIVERSE_LENGTH];
 } opendmx_device;
 
 struct opendmx_iterator {
@@ -61,15 +64,15 @@ struct opendmx_iterator {
     struct list_iterator    *iterator;
 };
 
-static int send_packet (const opendmx_device *device);
+static int send_packet (opendmx_device *device);
 static int close_output (const opendmx_device *device);
 
 # ifndef OPENDMX_USE_D2XX
-opendmx_device *opendmx_open_device (char *port_name) {
-    struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
+opendmx_device *opendmx_open_device (const char *port_name) {
+    struct opendmx_handle *device = malloc(sizeof(*device));
     
     // Get device file
-    device->device_handle = open(port_name, O_WRONLY | O_NOCTTY | O_NDELAY | O_ASYNC);
+    device->device_handle = open(port_name, O_WRONLY | O_NOCTTY | O_NDELAY | O_ASYNC | O_NONBLOCK);
     if (device->device_handle == -1) {
         goto error;     // failed to open device
     }
@@ -91,23 +94,34 @@ opendmx_device *opendmx_open_device (char *port_name) {
         goto error;     // failed to get settings
     }
     
-    #ifdef __APPLE__
-    cfmakeraw(&settings);            // Raw mode allows the use of ioctl
-    #endif
+    // cflag (8N2)
+    //settings.c_cflag &= ~CRTSCTS;   // No flow control
+    settings.c_cflag &= ~PARENB;    // No parity check
+    settings.c_cflag &= ~CSIZE;     // Clear size bytes
+    settings.c_cflag |= CS8;        // 8 bits per char
+    settings.c_cflag |= CSTOPB;     // 2 stop bits
+    settings.c_cflag |= CLOCAL;     // Local mode
     
-    // Clear flags
+    // oflag (disable output processing)
+    settings.c_oflag &= ~(OCRNL | ONLCR | ONLRET |  ONOCR | OFILL | OPOST);
+    // lflag (disable line processing)
+    settings.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG | ECHOE);
+    // iflag (no software flow control)
+    settings.c_iflag &= ~(IXON | IXOFF | IXANY);
+
+    // Timout settings
     settings.c_cc[VMIN] = 1;
-    settings.c_cc[VTIME] = 10;
+    settings.c_cc[VTIME] = 0;
     
-    settings.c_cflag &= ~(CREAD | PARENB | CSIZE);
-    settings.c_oflag &= ~(OCRNL | ONLCR | ONLRET |  ONOCR | ONOEOT| OFILL | OPOST | OXTABS);
-    settings.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
+    // Raw mode allows the use of ioctl?
+#ifdef __APPLE__
+    cfmakeraw(&settings);
+#endif
     
-    // Set flags
-    settings.c_cflag |= (CLOCAL | CSTOPB);
-    settings.c_cflag |= CS8;
-    
-    // Apply settings (apply right-away, clear io buffers)
+    // Flush port
+    tcflush(device->device_handle, TCOFLUSH);
+    fcntl(device->device_handle, F_SETFL, 0);
+    // Apply settings (applyright-away, clear io buffers)
     if (tcsetattr(device->device_handle, TCSAFLUSH, &settings) != 0) {
         goto error;     // failed to set settings
     }
@@ -140,9 +154,19 @@ static int set_baud_rate (const int device, const int speed) {
     // That was easy
     return 0;
 #elif __linux__
-//    struct serial_struct ser;
-//    ioctl (device->device_handle, TIOCGSERIAL, &ser);
-//    printf("%d", ser.base_baud);
+    struct serial_struct ser;
+    ioctl (device, TIOCGSERIAL, &ser);
+    
+    // set custom divisor
+    ser.custom_divisor = ser.baud_base / speed;
+    // update flags
+    ser.flags &= ~ASYNC_SPD_MASK;
+    ser.flags |= ASYNC_SPD_CUST;
+    
+    if (ioctl (device, TIOCSSERIAL, ser) < 0) {
+        return 1;
+    }
+    return 0;
 #else
 #   error "Unsupported platform"
 #endif
@@ -150,13 +174,11 @@ static int set_baud_rate (const int device, const int speed) {
 
 static int send_packet (const opendmx_device *device) {
     const int break_byte = 0; // Need to define this as a constant so I that can get a pointer to it
-    int error = tcdrain(device->device_handle);
-    error = error || set_baud_rate(device->device_handle, 56000);         // Drop to lower baud rate
+    int error = set_baud_rate(device->device_handle, 56000);         // Drop to lower baud rate
     error = error || (write(device->device_handle, &break_byte, 1) != 1); // transmit a zero
-    error = error || tcdrain(device->device_handle);
     // At 56kbaud this will hold the line low for 143µs (break) then high (the stop bits) for 36µs (MAB)
     error = error || set_baud_rate(device->device_handle, 250000);        // Return to the proper baud rate
-    error = error || (write(device->device_handle, &opendmx_start_byte, 1)  != 1);// send the start code
+    error = error || (write(device->device_handle, &opendmx_start_byte, 1)  != 1); // send the start code
     error = error || (write(device->device_handle, device->slots, OPENDMX_UNIVERSE_LENGTH) != OPENDMX_UNIVERSE_LENGTH);// send the DMX slots
     return error;
 }
@@ -228,12 +250,12 @@ static char *trim_path(char *path) {
     char *sub_path = (path + (sizeof(char) * SYS_PREFIX_LENGTH));
     // Get the length of the char up to the end of the device name
     int len = (int)strlen(sub_path) - SYS_POSTFIX_LENGTH;
-    char* str = (char*)malloc(sizeof(char) * len);
+    char *str = malloc(sizeof(char) * len);
     // Copy only the device name to a new string
     strncpy(str, sub_path, len);
     return str;
 }
-#endif
+#endif // __Linux__
 
 struct opendmx_iterator *opendmx_get_devices () {
 #ifdef __APPLE__
@@ -261,7 +283,7 @@ struct opendmx_iterator *opendmx_get_devices () {
         return 0;
     }
     
-    struct list *devices = (struct list *)malloc(sizeof(struct list));
+    struct list *devices = malloc(sizeof(*devices));
     devices->first = NULL;
     devices->length = 0;
     
@@ -284,14 +306,14 @@ struct opendmx_iterator *opendmx_get_devices () {
         (void) IOObjectRelease(modem_service);
     }
     // Create an return an iterator of the list of device files
-    struct opendmx_iterator *device_list = (struct opendmx_iterator*)malloc(sizeof(struct opendmx_iterator));
+    struct opendmx_iterator *device_list = malloc(sizeof(*device_list));
     device_list->list = devices;
     device_list->iterator = list_iterator(devices);
     return device_list;
 #elif __linux__
     // linux
     char* name = SERIAL_PATH;
-    struct list *devices = (struct list *)malloc(sizeof(struct list));
+    struct list *devices = malloc(sizeof(*devices));
     devices->first = NULL;
     devices->length = 0;
     
@@ -311,7 +333,7 @@ struct opendmx_iterator *opendmx_get_devices () {
     }
     globfree(&globed_paths);
     
-    struct opendmx_iterator *device_list = (struct opendmx_iterator*)malloc(sizeof(struct opendmx_iterator));
+    struct opendmx_iterator *device_list = malloc(sizeof(*device_list));
     device_list->list = devices;
     device_list->iterator = list_iterator(devices);
     return device_list;
@@ -360,7 +382,7 @@ int opendmx_iterator_to_array (const struct opendmx_iterator *iter, char **buffe
 #include "/usr/local/include/ftd2xx.h"
 
 opendmx_device *opendmx_open_device(char* serial_number) {
-    struct opendmx_handle *device = (struct opendmx_handle*)malloc(sizeof(struct opendmx_handle));
+    struct opendmx_handle *device = malloc(sizeof(*device));
     
     FT_STATUS ftstatus;
     
@@ -391,9 +413,9 @@ error:
     return NULL;
 }
 
-static int send_packet (const opendmx_device *device) {
-    const int break_byte = 0; // Need to define this as a constant so I that can get a pointer to it
-    int bytes_sent = 0;
+static int send_packet (opendmx_device *device) {
+    int break_byte = 0; // Need to define this as a variable so I that can get a pointer to it
+    uint bytes_sent = 0;
     int error = FT_SetBaudRate(device->ftdi_handle, 56000) != FT_OK;                        // Drop to lower baud rate
     error = error || FT_Write(device->ftdi_handle, &break_byte, 1, &bytes_sent)  != FT_OK;  // transmit a zero
     error = error || bytes_sent != 1;
@@ -414,7 +436,7 @@ struct opendmx_iterator *opendmx_get_devices () {
     FT_STATUS ftstatus;
     unsigned int num_devs;
     
-    struct list *devices = (struct list *)malloc(sizeof(struct list));
+    struct list *devices = malloc(sizeof(*devices));
     devices->first = NULL;
     devices->length = 0;
 
@@ -425,7 +447,7 @@ struct opendmx_iterator *opendmx_get_devices () {
         list_append(devices, 64);
     }
     
-    char **serial_nums = (char**) malloc(sizeof(char*) * num_devs + 1);
+    char **serial_nums = malloc(sizeof(char*) * num_devs + 1);
     list_array(devices, serial_nums, num_devs);
     serial_nums[num_devs] = NULL;
     
@@ -434,7 +456,7 @@ struct opendmx_iterator *opendmx_get_devices () {
     free(serial_nums);
     
     // Create an return an iterator of the list of device files
-    struct opendmx_iterator *device_list = (struct opendmx_iterator*)malloc(sizeof(struct opendmx_iterator));
+    struct opendmx_iterator *device_list = malloc(sizeof(*device_list));
     device_list->list = devices;
     device_list->iterator = list_iterator(devices);
     return device_list;

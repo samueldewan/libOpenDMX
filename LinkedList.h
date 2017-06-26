@@ -9,9 +9,6 @@
 #ifndef LinkedList_h
 #define LinkedList_h
 
-#include <stdlib.h>
-
-
 struct list {
     struct list_node    *first;
     int                 length;

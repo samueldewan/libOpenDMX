@@ -7,6 +7,7 @@
 //
 
 #include "LinkedList.h"
+#include <stdlib.h>
 
 static struct list_node *list_get_node (const struct list *list, const int index) {
     if ((list->length == 0) || (index >= list->length)) {
@@ -27,11 +28,11 @@ char *list_get (const struct list *list, const int index) {
 
 char *list_append (struct list *list, int length) {
     char *value;
-    if ((value = (char*)malloc(length * sizeof(char))) == NULL) {
+    if ((value = malloc(length * sizeof(char))) == NULL) {
         goto error_value_malloc;
     }
     struct list_node *node;
-    if ((node = (struct list_node*)malloc(sizeof(struct list_node))) == NULL) {
+    if ((node = malloc(sizeof(*node))) == NULL) {
         goto error_node_malloc;
     }
     
@@ -67,11 +68,11 @@ char *list_add (struct list *list, int index, int length) {
         goto error; // Trying to add to an index which is not in the list
     }
     char *value;
-    if ((value = (char*)malloc(length * sizeof(char))) == NULL) {
+    if ((value = malloc(length * sizeof(char))) == NULL) {
         goto error_value_malloc;
     }
     struct list_node *node;
-    if ((node = (struct list_node*)malloc(sizeof(struct list_node))) == NULL) {
+    if ((node = malloc(sizeof(*node))) == NULL) {
         goto error_node_malloc;
     }
     
@@ -153,7 +154,7 @@ int list_array_freeing (struct list *list, char **buffer, int size) {
 
 // MARK: Iterator
 struct list_iterator *list_iterator (const struct list *list) {
-    struct list_iterator *itt = (struct list_iterator *)malloc(sizeof(struct list_iterator));
+    struct list_iterator *itt = malloc(sizeof(*itt));
     itt->next = list->first;
     itt->first = list->first;
     return itt;
